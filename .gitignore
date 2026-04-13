@@ -1,5 +1,5 @@
 resources/
-settings.json
+secrets.json
 tmp/
 
 # Python-generated files

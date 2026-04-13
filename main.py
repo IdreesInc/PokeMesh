@@ -3,30 +3,31 @@ import json
 import requests
 from pyboy import PyBoy
 
+SECRETS: dict = json.load(open("secrets.json"))
 SETTINGS: dict = json.load(open("settings.json"))
-SERVER: str = SETTINGS["server"]
-MODEL: str = SETTINGS["model"]
+SERVER: str = SECRETS["server"]
+MODEL: str = SECRETS["model"]
 IMG_PATH: str = "tmp/screenshot.png"
+PROMPT: str = SETTINGS["prompt"]
 
 def main():
 	pyboy = PyBoy("resources/yellow.gb")
 	ticks: int = 0
-	MAX_TICKS: int = 1500
+	TRIGGER_COUNT: int = 1500
 	while pyboy.tick():
 		ticks += 1
-		if ticks == MAX_TICKS:
+		if ticks % TRIGGER_COUNT == 0:
 			screenshot = pyboy.screen.image
 			if screenshot:
 				screenshot.save(IMG_PATH)
 				print(summarize(IMG_PATH))
 			else:
 				print("Screenshot failed!")
-			break
 		pass
 	pyboy.stop()
 
 def summarize(path: str) -> str:
-	return request("Briefly, what's happening in this image?", path)
+	return request(PROMPT, path)
 
 def request(message: str, image_path: str | None) -> str:
 	content: list = [
