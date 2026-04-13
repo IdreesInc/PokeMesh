@@ -6,13 +6,12 @@ SETTINGS = json.load(open("settings.json"))
 SERVER = SETTINGS["server"]
 MODEL = SETTINGS["model"]
 
-
 def main():
 	print(request("Echo 'Hello, World!'"))
-	# pyboy = PyBoy("resources/yellow.gb")
-	# while pyboy.tick():
-	# 	pass
-	# pyboy.stop()
+	pyboy = PyBoy("resources/yellow.gb")
+	while pyboy.tick():
+		pass
+	pyboy.stop()
 
 def request(message: str) -> str:
 	response = requests.post(
