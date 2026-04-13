@@ -7,11 +7,12 @@ SECRETS: dict = json.load(open("secrets.json"))
 SETTINGS: dict = json.load(open("settings.json"))
 SERVER: str = SECRETS["server"]
 MODEL: str = SECRETS["model"]
-IMG_PATH: str = "tmp/screenshot.png"
 PROMPT: str = SETTINGS["prompt"]
+ROM: str = SECRETS["rom"]
+IMG_PATH: str = "tmp/screenshot.png"
 
 def main():
-	pyboy = PyBoy("resources/yellow.gb")
+	pyboy = PyBoy(ROM)
 	ticks: int = 0
 	TRIGGER_COUNT: int = 1500
 	while pyboy.tick():
