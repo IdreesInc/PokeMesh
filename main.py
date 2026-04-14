@@ -11,6 +11,7 @@ class Input:
 SECRETS: dict = json.load(open("secrets.json"))
 SETTINGS: dict = json.load(open("settings.json"))
 SERVER: str = SECRETS["server"]
+SERVER_TOKEN: str = SECRETS["server_token"]
 MODEL: str = SECRETS["model"]
 PROMPT: str = SETTINGS["prompt"]
 ROM: str = SECRETS["rom"]
@@ -80,6 +81,9 @@ def request(message: str, image_path: str | None) -> str:
 
 	response = requests.post(
 		"http://" + SERVER + "/v1/chat/completions",
+		headers={
+			"Authorization": f"Bearer {SERVER_TOKEN}"
+		},
 		json={
 			"model": MODEL,
 			"messages": [
