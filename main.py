@@ -1,3 +1,4 @@
+import threading
 import base64
 import json
 import requests
@@ -23,15 +24,9 @@ input_queue = list[Input]()
 def main():
 	pyboy = PyBoy(ROM)
 	pyboy.tick(600)
-	while True:
-		if len(input_queue) == 0:
-			screenshot = pyboy.screen.image
-			if screenshot:
-				screenshot.save(IMG_PATH)
-				print(summarize(IMG_PATH))
-				process_input(input("> "))
-			else:
-				print("Screenshot failed!")
+	input_thread = threading.Thread(target=input_loop)
+	input_thread.start()
+	while pyboy.tick(1):
 		if len(input_queue) > 0:
 			current = input_queue[0]
 			print("Pressing " + current.button)
@@ -40,8 +35,24 @@ def main():
 			if current.times <= 0:
 				input_queue.pop(0)
 			pyboy.tick(TICKS_PER_INPUT)
-		pass
+			if len(input_queue) == 0:
+				capture_and_summarize(pyboy)
 	pyboy.stop()
+
+def capture_and_summarize(pyboy: PyBoy):
+	print("Capturing screenshot...")
+	screenshot = pyboy.screen.image
+	if screenshot:
+		screenshot.save(IMG_PATH)
+		print("Summarizing screenshot...")
+		threading.Thread(target=lambda: print(summarize(IMG_PATH))).start()
+	else:
+		print("Screenshot failed!")
+
+def input_loop():
+	while True:
+		process_input(input("> "))
+
 
 def process_input(command: str):
 	split = command.lower().split()
