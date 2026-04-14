@@ -5,6 +5,7 @@ description = "It's Pokémon on the mesh!"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "meshcore>=2.3.6",
     "pillow>=12.2.0",
     "pyboy>=2.7.0",
     "requests>=2.33.1",
