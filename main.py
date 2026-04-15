@@ -20,6 +20,7 @@ PROMPT: str = SETTINGS["prompt"]
 ROM: str = SECRETS["rom"]
 IMG_PATH: str = "tmp/screenshot.png"
 TICKS_PER_INPUT: int = 360
+CHANNEL_IDX = 1
 
 input_queue = list[Input]()
 
@@ -28,7 +29,8 @@ def main():
 	pyboy.tick(600)
 	input_thread = threading.Thread(target=input_loop)
 	input_thread.start()
-	asyncio.run(connect_to_meshcore())
+	meshcore_thread = threading.Thread(target=lambda: asyncio.run(connect_to_meshcore()), daemon=True)
+	meshcore_thread.start()
 	while pyboy.tick(1):
 		if len(input_queue) > 0:
 			current = input_queue[0]
@@ -44,14 +46,18 @@ def main():
 
 async def connect_to_meshcore():
 	meshcore = await MeshCore.create_serial("/dev/tty.usbmodem441BF66A71281")
-	# Get your contacts
-	result = await meshcore.commands.get_contacts()
-	if result.type == EventType.ERROR:
-		print(f"Error getting contacts: {result.payload}")
-		return
-		
-	contacts = result.payload
-	print(f"Found {len(contacts)} contacts")
+	await meshcore.start_auto_message_fetching()
+	meshcore.subscribe(EventType.CHANNEL_MSG_RECV, handle_channel_message, attribute_filters={"channel_idx": CHANNEL_IDX})
+	# Maintain thread indefinitely
+	await asyncio.Future()
+
+async def handle_channel_message(event):
+	msg = event.payload or {}
+	chan = msg.get("channel_idx")
+	text = msg.get("text", "")
+	path_len = msg.get("path_len")
+	sender = text.split(":", 1)[0].strip()
+	print(f"[{sender}]: {text} > path_len={path_len}") 
 
 def capture_and_summarize(pyboy: PyBoy):
 	print("Capturing screenshot...")
