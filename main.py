@@ -23,6 +23,7 @@ TICKS_PER_INPUT: int = 360
 CHANNEL_IDX = SETTINGS["channel"]
 
 input_queue = list[Input]()
+output_queue = list[str]()
 
 def main():
 	pyboy = PyBoy(ROM)
@@ -49,11 +50,16 @@ async def connect_to_meshcore():
 	channel_info = await meshcore.commands.get_channel(CHANNEL_IDX)
 	print(f"Listening to channel {channel_info.payload['channel_name']}...")
 	await meshcore.start_auto_message_fetching()
-	meshcore.subscribe(EventType.CHANNEL_MSG_RECV, handle_channel_message, attribute_filters={"channel_idx": CHANNEL_IDX})
+	meshcore.subscribe(EventType.CHANNEL_MSG_RECV, handle_message, attribute_filters={"channel_idx": CHANNEL_IDX})
 	# Maintain thread indefinitely
-	await asyncio.Future()
+	# await asyncio.Future()
+	while True:
+		if len(output_queue) > 0:
+			message = output_queue.pop(0)
+			await send_message(meshcore, message)
+		await asyncio.sleep(0.1)
 
-async def handle_channel_message(event):
+async def handle_message(event):
 	msg = event.payload or {}
 	chan = msg.get("channel_idx")
 	text = msg.get("text", "")
@@ -62,13 +68,16 @@ async def handle_channel_message(event):
 	print(f"{text} > path_len={path_len}")
 	process_input(text.split(":", 1)[1].strip())
 
+async def send_message(meshcore: MeshCore, text: str):
+	await meshcore.commands.send_chan_msg(CHANNEL_IDX, text)
+
 def capture_and_summarize(pyboy: PyBoy):
 	print("Capturing screenshot...")
 	screenshot = pyboy.screen.image
 	if screenshot:
 		screenshot.save(IMG_PATH)
 		print("Summarizing screenshot...")
-		threading.Thread(target=lambda: print(summarize(IMG_PATH))).start()
+		threading.Thread(target=lambda: output(summarize(IMG_PATH))).start()
 	else:
 		print("Screenshot failed!")
 
@@ -76,6 +85,9 @@ def input_loop():
 	while True:
 		process_input(input("> "))
 
+def output(message: str):
+	print(message)
+	output_queue.append(message)
 
 def process_input(command: str):
 	split = command.lower().split()
