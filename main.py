@@ -59,7 +59,8 @@ async def handle_channel_message(event):
 	text = msg.get("text", "")
 	path_len = msg.get("path_len")
 	sender = text.split(":", 1)[0].strip()
-	print(f"[{sender}]: {text} > path_len={path_len}") 
+	print(f"{text} > path_len={path_len}")
+	process_input(text.split(":", 1)[1].strip())
 
 def capture_and_summarize(pyboy: PyBoy):
 	print("Capturing screenshot...")
