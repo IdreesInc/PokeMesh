@@ -1,3 +1,4 @@
 {
+	"channel": 4,
 	"prompt": "Screenshot from the game Pokémon Yellow, taken from a Game Boy Color emulator.\nDescribe what's in this screenshot from Pokémon Yellow extremely briefly, in one or two sentences. Be concise and accurate, and don't make guesses. If the Player is outside, describe possible routes or tall grass. If there are NPCs or items in Pokéballs to be picked up, describe their location. When describing location, describe the steps in each direction required to reach the target. If the Player is in a battle, describe the necessary details to make a decision including HP, opponent HP percentage, statuses, highlighted menu item, etc."
 }

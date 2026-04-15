@@ -20,7 +20,7 @@ PROMPT: str = SETTINGS["prompt"]
 ROM: str = SECRETS["rom"]
 IMG_PATH: str = "tmp/screenshot.png"
 TICKS_PER_INPUT: int = 360
-CHANNEL_IDX = 4 # "#poke" channel
+CHANNEL_IDX = SETTINGS["channel"]
 
 input_queue = list[Input]()
 
