@@ -20,7 +20,7 @@ PROMPT: str = SETTINGS["prompt"]
 ROM: str = SECRETS["rom"]
 IMG_PATH: str = "tmp/screenshot.png"
 TICKS_PER_INPUT: int = 360
-CHANNEL_IDX = 1
+CHANNEL_IDX = 4 # "#poke" channel
 
 input_queue = list[Input]()
 
@@ -46,6 +46,8 @@ def main():
 
 async def connect_to_meshcore():
 	meshcore = await MeshCore.create_serial("/dev/tty.usbmodem441BF66A71281")
+	channel_info = await meshcore.commands.get_channel(CHANNEL_IDX)
+	print(f"Listening to channel {channel_info.payload['channel_name']}...")
 	await meshcore.start_auto_message_fetching()
 	meshcore.subscribe(EventType.CHANNEL_MSG_RECV, handle_channel_message, attribute_filters={"channel_idx": CHANNEL_IDX})
 	# Maintain thread indefinitely
