@@ -2,6 +2,7 @@ import threading
 import asyncio
 import base64
 import json
+from typing import NoReturn
 import requests
 from pyboy import PyBoy
 from meshcore import MeshCore, EventType
@@ -21,12 +22,14 @@ ROM: str = SECRETS["rom"]
 IMG_PATH: str = "tmp/screenshot.png"
 TICKS_PER_INPUT: int = 360
 CHANNEL_IDX = SETTINGS["channel"]
+SAVE_STATE_PATH = "resources/save.state"
 
 input_queue = list[Input]()
 output_queue = list[str]()
 
 def main():
 	pyboy = PyBoy(ROM)
+	load_state(pyboy)
 	pyboy.tick(600)
 	input_thread = threading.Thread(target=input_loop)
 	input_thread.start()
@@ -42,10 +45,19 @@ def main():
 				input_queue.pop(0)
 			pyboy.tick(TICKS_PER_INPUT)
 			if len(input_queue) == 0:
+				save_state(pyboy)
 				capture_and_summarize(pyboy)
 	pyboy.stop()
 
-async def connect_to_meshcore():
+def load_state(pyboy: PyBoy) -> None:
+	with open(SAVE_STATE_PATH, "rb") as f:
+		pyboy.load_state(f)
+
+def save_state(pyboy: PyBoy) -> None:
+	with open(SAVE_STATE_PATH, "wb") as f:
+		pyboy.save_state(f)
+
+async def connect_to_meshcore() -> NoReturn:
 	meshcore = await MeshCore.create_serial("/dev/tty.usbmodem441BF66A71281")
 	channel_info = await meshcore.commands.get_channel(CHANNEL_IDX)
 	print(f"Listening to channel {channel_info.payload['channel_name']}...")
@@ -65,7 +77,7 @@ async def handle_message(event):
 	text = msg.get("text", "")
 	path_len = msg.get("path_len")
 	sender = text.split(":", 1)[0].strip()
-	print(f"{text} > path_len={path_len}")
+	print(f"{text} > channel {chan}, path_len={path_len}")
 	process_input(text.split(":", 1)[1].strip())
 
 async def send_message(meshcore: MeshCore, text: str):
