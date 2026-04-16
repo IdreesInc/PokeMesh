@@ -27,11 +27,14 @@ def main():
 			src_path = os.path.join(TEST_FOLDER, IMAGE_FOLDER, filename)
 			grid_path = os.path.join(tmp_path, filename)
 			gridify(src_path, grid_path, 16)
+			t_start = time.time()
 			summary = summarizer.summarize(grid_path)
+			elapsed = time.time() - t_start
 			with open(src_path, "rb") as img_f:
 				data_url = "data:image/png;base64," + base64.b64encode(img_f.read()).decode()
-			print("Summary: " + summary)
-			summaries.append([filename, summary, data_url])
+			elapsed_str = f"{elapsed:.1f}s"
+			print(f"Summary ({elapsed_str}): " + summary)
+			summaries.append([filename, summary, data_url, elapsed_str])
 	output_name = "test_output_" + str(int(time.time()))
 	output_path = os.path.join(TEST_FOLDER, OUTPUT_FOLDER, output_name + ".md")
 	print("Saving output to " + output_path)
@@ -43,6 +46,7 @@ def main():
 		for summary in summaries:
 			f.write("### " + summary[0] + "\n\n")
 			f.write("![](" + summary[2] + ")\n\n")
+			f.write("*" + summary[3] + "*\n\n")
 			f.write(summary[1] + "\n\n")
 	print("Testing complete!")
 
