@@ -46,8 +46,8 @@ def main():
 		for summary in summaries:
 			f.write("### " + summary[0] + "\n\n")
 			f.write("![](" + summary[2] + ")\n\n")
-			f.write("*" + summary[3] + "*\n\n")
 			f.write(summary[1] + "\n\n")
+			f.write("*" + summary[3] + "*\n\n")
 	print("Testing complete!")
 
 if __name__ == "__main__":
