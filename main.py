@@ -6,6 +6,8 @@ from typing import NoReturn
 import requests
 from pyboy import PyBoy
 from meshcore import MeshCore, EventType
+from gridify import gridify
+from summarizer import Summarizer
 
 class Input:
 	def __init__(self, button: str, times: int = 1):
@@ -20,10 +22,12 @@ MODEL: str = SECRETS["model"]
 PROMPT: str = SETTINGS["prompt"]
 ROM: str = SECRETS["rom"]
 IMG_PATH: str = "tmp/screenshot.png"
+MODIFIED_IMG_PATH: str = "tmp/screenshot_grid.png"
 TICKS_PER_INPUT: int = 360
 CHANNEL_IDX = SETTINGS["channel"]
 SAVE_STATE_PATH = "resources/save.state"
 
+summarizer = Summarizer(SECRETS, SETTINGS)
 input_queue = list[Input]()
 output_queue = list[str]()
 
@@ -63,8 +67,6 @@ async def connect_to_meshcore() -> NoReturn:
 	print(f"Listening to channel {channel_info.payload['channel_name']}...")
 	await meshcore.start_auto_message_fetching()
 	meshcore.subscribe(EventType.CHANNEL_MSG_RECV, handle_message, attribute_filters={"channel_idx": CHANNEL_IDX})
-	# Maintain thread indefinitely
-	# await asyncio.Future()
 	while True:
 		if len(output_queue) > 0:
 			message = output_queue.pop(0)
@@ -88,8 +90,9 @@ def capture_and_summarize(pyboy: PyBoy):
 	screenshot = pyboy.screen.image
 	if screenshot:
 		screenshot.save(IMG_PATH)
+		gridify(IMG_PATH, MODIFIED_IMG_PATH, 16)
 		print("Summarizing screenshot...")
-		threading.Thread(target=lambda: output(summarize(IMG_PATH))).start()
+		threading.Thread(target=lambda: output(summarizer.summarize(MODIFIED_IMG_PATH))).start()
 	else:
 		print("Screenshot failed!")
 
@@ -116,43 +119,6 @@ def process_input(command: str):
 		except ValueError:
 			pass
 	input_queue.append(Input(button, times))
-
-def summarize(path: str) -> str:
-	return request(PROMPT, path)
-
-def request(message: str, image_path: str | None) -> str:
-	content: list = [
-		{
-			"type": "text",
-			"text": message
-		}
-	]
-	if image_path:
-		with open(image_path, "rb") as f:
-			encoded = base64.b64encode(f.read()).decode("utf-8")
-			content.append({
-				"type": "image_url",
-				"image_url": {
-					"url": "data:image/png;base64," + encoded
-				}
-			})
-
-	response = requests.post(
-		"http://" + SERVER + "/v1/chat/completions",
-		headers={
-			"Authorization": f"Bearer {SERVER_TOKEN}"
-		},
-		json={
-			"model": MODEL,
-			"messages": [
-				{
-					"role": "user",
-					"content": content
-				}
-			]
-		}
-	)
-	return response.json()["choices"][0]["message"]["content"]
 
 
 if __name__ == "__main__":
