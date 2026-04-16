@@ -1,6 +1,7 @@
 resources/
 secrets.json
 tmp/
+tests/outputs/
 
 # Python-generated files
 __pycache__/
