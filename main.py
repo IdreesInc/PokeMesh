@@ -18,7 +18,7 @@ class Action:
 		self.times = times
 
 class Query:
-	VALID_QUERIES = ["summarize", "where"]
+	VALID_QUERIES = ["help", "summarize", "where"]
 
 	def __init__(self, action: str, value: str) -> None:
 		self.action = action
@@ -65,7 +65,9 @@ def main():
 			elif isinstance(input_queue[0], Query):
 				query = input_queue[0]
 				print("Processing query: " + query.action)
-				if query.action == "summarize":
+				if query.action == "help":
+					output("Commands: " + ", ".join(Query.VALID_QUERIES) + "\nInputs: " + ", ".join(Action.VALID_BUTTONS))
+				elif query.action == "summarize":
 					capture_and_summarize(pyboy)
 				elif query.action == "where":
 					location = get_location(pyboy)
