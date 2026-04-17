@@ -1,6 +1,7 @@
 import os
 import threading
 import asyncio
+import time
 import base64
 import json
 from typing import NoReturn
@@ -31,7 +32,7 @@ IMG_PATH: str = "tmp/screenshot.png"
 MODIFIED_IMG_PATH: str = "tmp/screenshot_grid.png"
 TICKS_PER_INPUT: int = 360
 CHANNEL_IDX = SETTINGS["channel"]
-SAVE_STATE_PATH = "resources/save.state"
+SAVE_STATE_DIRECTORY = "resources/saves"
 
 summarizer = Summarizer(SECRETS, SETTINGS)
 input_queue = list[Action|Query]()
@@ -67,14 +68,16 @@ def main():
 	pyboy.stop()
 
 def load_state(pyboy: PyBoy) -> None:
-	if not os.path.exists(SAVE_STATE_PATH):
+	save_files = [f for f in os.listdir(SAVE_STATE_DIRECTORY) if f.endswith(".state")]
+	if not save_files:
 		print("No save state found, starting fresh.")
 		return
-	with open(SAVE_STATE_PATH, "rb") as f:
+	save_files.sort(reverse=True)
+	with open(os.path.join(SAVE_STATE_DIRECTORY, save_files[0]), "rb") as f:
 		pyboy.load_state(f)
 
 def save_state(pyboy: PyBoy) -> None:
-	with open(SAVE_STATE_PATH, "wb") as f:
+	with open(os.path.join(SAVE_STATE_DIRECTORY, f"save_{epoch_time()}.state"), "wb") as f:
 		pyboy.save_state(f)
 
 async def connect_to_meshcore() -> NoReturn:
@@ -124,18 +127,22 @@ def process_input(command: str):
 	split = command.lower().split()
 	if len(split) == 0:
 		return
-	button = split[0]
-	times = 1
-	if button not in ["up", "down", "left", "right", "a", "b", "start", "select"]:
-		print("Invalid input: " + button)
-		return
-	elif len(split) > 1:
-		try:
-			times = int(split[1])
-		except ValueError:
-			pass
-	input_queue.append(Action(button, times))
+	command = split[0]
+	if command in ["up", "down", "left", "right", "a", "b", "start", "select"]:
+		times = 1
+		if len(split) > 1:
+			try:
+				times = int(split[1])
+			except ValueError:
+				pass
+		input_queue.append(Action(command, times))
+	elif command == "summarize":
+		input_queue.append(Query("summarize", ""))
+	else:
+		output("Unknown command: " + command)
 
+def epoch_time() -> int:
+	return int(time.time())
 
 if __name__ == "__main__":
 	main()
