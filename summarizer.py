@@ -8,17 +8,17 @@ class Summarizer:
 		self.model = secrets["model"]
 		self.prompt = settings["prompt"]
 
-	def summarize(self, path: str) -> str:
-		return self.request(self.prompt, path)
+	def summarize(self, path: str, *extra_paths: str) -> str:
+		return self.request(self.prompt, path, *extra_paths)
 
-	def request(self, message: str, image_path: str | None) -> str:
+	def request(self, message: str, *image_paths: str) -> str:
 		content: list = [
 			{
 				"type": "text",
 				"text": message
 			}
 		]
-		if image_path:
+		for image_path in image_paths:
 			with open(image_path, "rb") as f:
 				encoded = base64.b64encode(f.read()).decode("utf-8")
 				content.append({

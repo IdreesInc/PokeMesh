@@ -2,7 +2,7 @@
 from PIL import Image, ImageDraw
 
 def gridify(image_path: str, output_path: str, grid_size: int):
-	image = Image.open(image_path)
+	image = Image.open(image_path).convert("L").convert("RGBA")
 	width, height = [x * 2 for x in image.size]
 	grid_size *= 2
 	image = image.resize((width , height), Image.Resampling.NEAREST)

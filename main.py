@@ -23,6 +23,7 @@ PROMPT: str = SETTINGS["prompt"]
 ROM: str = SECRETS["rom"]
 IMG_PATH: str = "tmp/screenshot.png"
 MODIFIED_IMG_PATH: str = "tmp/screenshot_grid.png"
+TILES_PATH: str = "spritesheeter/tiles.png"
 TICKS_PER_INPUT: int = 360
 CHANNEL_IDX = SETTINGS["channel"]
 SAVE_STATE_PATH = "resources/save.state"
@@ -92,7 +93,7 @@ def capture_and_summarize(pyboy: PyBoy):
 		screenshot.save(IMG_PATH)
 		gridify(IMG_PATH, MODIFIED_IMG_PATH, 16)
 		print("Summarizing screenshot...")
-		threading.Thread(target=lambda: output(summarizer.summarize(MODIFIED_IMG_PATH))).start()
+		threading.Thread(target=lambda: output(summarizer.summarize(MODIFIED_IMG_PATH, TILES_PATH))).start()
 	else:
 		print("Screenshot failed!")
 
