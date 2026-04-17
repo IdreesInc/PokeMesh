@@ -1,3 +1,4 @@
+import os
 import threading
 import asyncio
 import base64
@@ -54,6 +55,9 @@ def main():
 	pyboy.stop()
 
 def load_state(pyboy: PyBoy) -> None:
+	if not os.path.exists(SAVE_STATE_PATH):
+		print("No save state found, starting fresh.")
+		return
 	with open(SAVE_STATE_PATH, "rb") as f:
 		pyboy.load_state(f)
 
