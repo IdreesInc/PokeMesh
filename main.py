@@ -2,21 +2,24 @@ import os
 import threading
 import asyncio
 import time
-import base64
 import json
 from typing import NoReturn
-import requests
 from pyboy import PyBoy
 from meshcore import MeshCore, EventType
 from gridify import gridify
 from summarizer import Summarizer
+from game_data import Locations
 
 class Action:
+	VALID_BUTTONS = ["up", "down", "left", "right", "a", "b", "start", "select"]
+	
 	def __init__(self, button: str, times: int = 1):
 		self.button = button
 		self.times = times
 
 class Query:
+	VALID_QUERIES = ["summarize", "where"]
+
 	def __init__(self, action: str, value: str) -> None:
 		self.action = action
 		self.value = value
@@ -64,6 +67,9 @@ def main():
 				print("Processing query: " + query.action)
 				if query.action == "summarize":
 					capture_and_summarize(pyboy)
+				elif query.action == "where":
+					location = get_location(pyboy)
+					output(f"Location: {location}")
 				input_queue.pop(0)
 	pyboy.stop()
 
@@ -128,7 +134,7 @@ def process_input(command: str):
 	if len(split) == 0:
 		return
 	command = split[0]
-	if command in ["up", "down", "left", "right", "a", "b", "start", "select"]:
+	if command in Action.VALID_BUTTONS:
 		times = 1
 		if len(split) > 1:
 			try:
@@ -136,10 +142,15 @@ def process_input(command: str):
 			except ValueError:
 				pass
 		input_queue.append(Action(command, times))
-	elif command == "summarize":
-		input_queue.append(Query("summarize", ""))
+	elif command in Query.VALID_QUERIES:
+		input_queue.append(Query(command, ""))
 	else:
 		output("Unknown command: " + command)
+
+def get_location(pyboy: PyBoy) -> str:
+	MAP_ADDRESS = 0xD35E
+	id = pyboy.memory[MAP_ADDRESS]
+	return Locations.get(id, "Unknown Location")
 
 def epoch_time() -> int:
 	return int(time.time())
