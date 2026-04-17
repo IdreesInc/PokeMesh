@@ -37,6 +37,7 @@ TICKS_PER_INPUT: int = 360
 TICKS_BEFORE_SUMMARY: int = 360
 CHANNEL_IDX = SETTINGS["channel"]
 SAVE_STATE_DIRECTORY = "resources/saves"
+MAX_TIMES = 10
 
 summarizer = Summarizer(SECRETS, SETTINGS)
 input_queue = list[Action|Query]()
@@ -142,13 +143,26 @@ def process_input(command: str):
 		return
 	command = split[0]
 	if command in Action.VALID_BUTTONS:
-		times = 1
-		if len(split) > 1:
-			try:
-				times = int(split[1])
-			except ValueError:
-				pass
-		input_queue.append(Action(command, times))
+		index = 0
+		new_inputs = []
+		total_times = 0
+		while index < len(split):
+			if split[index] in Action.VALID_BUTTONS:
+				button = split[index]
+				index += 1
+				times = 1
+				if index < len(split) and split[index].isdigit():
+					times = int(split[index])
+					index += 1
+				total_times += times
+				new_inputs.append(Action(button, times))
+			else:
+				output("Unknown input: " + split[index])
+				index += 1
+		if total_times > MAX_TIMES:
+			output(f"Too many inputs at once: {total_times} > {MAX_TIMES}")
+		else:
+			input_queue.extend(new_inputs)
 	elif command in Query.VALID_QUERIES:
 		input_queue.append(Query(command, ""))
 	else:
