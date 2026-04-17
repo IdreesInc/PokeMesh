@@ -6,7 +6,7 @@
 		"Describe what's in this screenshot from Pokémon Blue extremely briefly, in one or two sentences. Be concise and accurate, and don't make guesses. Respond as if talking to the player.",
 		"Priorities in order: 1. Dialogue 2. Battle 3. Entrances/Exits 4. NPCs/Items",
 		"If the Player is outside, describe possible routes or obstacles. Whether inside or outside, if there is an entrance/exit like a door, stairs, cave opening, etc., that is usually important. If there are NPCs or items in Pokéballs (round objects that are half red half orange) to be picked up, describe their location. When describing location, describe the tiles in each direction required to reach the target. When describing the number of tiles, write the numbers as digits. Only describe location when we are in the overworld, do not do so during dialogue, battles, or menus.",
-		"If the Player is in a battle, describe the necessary details to make a decision including HP, opponent HP percentage, statuses, highlighted menu item, etc.",
+		"If the Player is in a battle, describe the necessary details to make a decision including HP, opponent HP percentage, statuses, highlighted menu item, etc. The opponent Pokémon is at the top and the Player's Pokémon is at the bottom.",
 		"If the player is not in a battle, a red grid may be overlaid on top of the screenshot. The game can be broken up into tiles which are highlighted by the red grid. The top left tile is (0,0) and the bottom right tile is (8,9). The player is always at (4,4). Don't mention the grid in your response, but feel free to use it to think. Do not describe the colors of anything to the player."
 	]
 }

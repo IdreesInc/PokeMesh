@@ -12,7 +12,7 @@ def gridify(image_path: str, output_path: str, grid_size: int):
 	# Count the percentage of fully white pixels
 	white_pixels = 0
 	for pixel in image.getdata():
-		if isinstance(pixel, (tuple, list)) and pixel[0] > 230 and pixel[1] > 230 and pixel[2] > 230:
+		if isinstance(pixel, (tuple, list)) and pixel[0] > 240 and pixel[1] > 240 and pixel[2] > 240:
 			white_pixels += 1
 	total_pixels = width * height
 	white_percentage = white_pixels / total_pixels
@@ -25,7 +25,7 @@ def gridify(image_path: str, output_path: str, grid_size: int):
 
 	draw = ImageDraw.Draw(canvas)
 
-	if white_percentage < 0.75:
+	if white_percentage < 0.5:
 		for x in range(0, padded_width + 1, grid_size):
 			draw.line([(x - 1, 0), (x - 1, padded_height)], fill="red", width=2)
 
