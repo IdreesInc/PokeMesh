@@ -6,7 +6,7 @@ class Summarizer:
 		self.server = secrets["server"]
 		self.server_token = secrets["server_token"]
 		self.model = settings["model"]
-		self.prompt = settings["prompt"]
+		self.prompt = "\n".join(settings["prompt"])
 
 	def summarize(self, path: str) -> str:
 		return self.request(self.prompt, path)

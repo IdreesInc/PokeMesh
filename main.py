@@ -18,7 +18,7 @@ class Action:
 		self.times = times
 
 class Query:
-	VALID_QUERIES = ["help", "summarize", "where"]
+	VALID_QUERIES = ["help", "summarize", "where", "coordinates"]
 
 	def __init__(self, action: str, value: str) -> None:
 		self.action = action
@@ -29,11 +29,12 @@ SETTINGS: dict = json.load(open("settings.json"))
 SERVER: str = SECRETS["server"]
 SERVER_TOKEN: str = SECRETS["server_token"]
 MODEL: str = SETTINGS["model"]
-PROMPT: str = SETTINGS["prompt"]
+PROMPT: str = "\n".join(SETTINGS["prompt"])
 ROM: str = SECRETS["rom"]
 IMG_PATH: str = "tmp/screenshot.png"
 MODIFIED_IMG_PATH: str = "tmp/screenshot_grid.png"
 TICKS_PER_INPUT: int = 360
+TICKS_BEFORE_SUMMARY: int = 360
 CHANNEL_IDX = SETTINGS["channel"]
 SAVE_STATE_DIRECTORY = "resources/saves"
 
@@ -60,6 +61,7 @@ def main():
 					input_queue.pop(0)
 				pyboy.tick(TICKS_PER_INPUT)
 				if len(input_queue) == 0:
+					pyboy.tick(TICKS_BEFORE_SUMMARY)
 					save_state(pyboy)
 					capture_and_summarize(pyboy)
 			elif isinstance(input_queue[0], Query):
@@ -69,9 +71,12 @@ def main():
 					output("Commands: " + ", ".join(Query.VALID_QUERIES) + "\nInputs: " + ", ".join(Action.VALID_BUTTONS))
 				elif query.action == "summarize":
 					capture_and_summarize(pyboy)
-				elif query.action == "where":
+				elif query.action == "where" or query.action == "location":
 					location = get_location(pyboy)
 					output(f"Location: {location}")
+				elif query.action == "coordinates" or query.action == "coords":
+					coords = get_coordinates(pyboy)
+					output(f"Coordinates: {coords[0]}, {coords[1]}")
 				input_queue.pop(0)
 	pyboy.stop()
 
@@ -153,6 +158,11 @@ def get_location(pyboy: PyBoy) -> str:
 	MAP_ADDRESS = 0xD35E
 	id = pyboy.memory[MAP_ADDRESS]
 	return Locations.get(id, "Unknown Location")
+
+def get_coordinates(pyboy: PyBoy) -> tuple[int, int]:
+	X_ADDRESS = 0xD361
+	Y_ADDRESS = 0xD362
+	return (pyboy.memory[Y_ADDRESS], pyboy.memory[X_ADDRESS])
 
 def epoch_time() -> int:
 	return int(time.time())
