@@ -10,10 +10,15 @@ from meshcore import MeshCore, EventType
 from gridify import gridify
 from summarizer import Summarizer
 
-class Input:
+class Action:
 	def __init__(self, button: str, times: int = 1):
 		self.button = button
 		self.times = times
+
+class Query:
+	def __init__(self, action: str, value: str) -> None:
+		self.action = action
+		self.value = value
 
 SECRETS: dict = json.load(open("secrets.json"))
 SETTINGS: dict = json.load(open("settings.json"))
@@ -29,7 +34,7 @@ CHANNEL_IDX = SETTINGS["channel"]
 SAVE_STATE_PATH = "resources/save.state"
 
 summarizer = Summarizer(SECRETS, SETTINGS)
-input_queue = list[Input]()
+input_queue = list[Action|Query]()
 output_queue = list[str]()
 
 def main():
@@ -42,16 +47,23 @@ def main():
 	meshcore_thread.start()
 	while pyboy.tick(1):
 		if len(input_queue) > 0:
-			current = input_queue[0]
-			print("Pressing " + current.button)
-			pyboy.button(current.button)
-			current.times -= 1
-			if current.times <= 0:
+			if isinstance(input_queue[0], Action):
+				current = input_queue[0]
+				print("Pressing " + current.button)
+				pyboy.button(current.button)
+				current.times -= 1
+				if current.times <= 0:
+					input_queue.pop(0)
+				pyboy.tick(TICKS_PER_INPUT)
+				if len(input_queue) == 0:
+					save_state(pyboy)
+					capture_and_summarize(pyboy)
+			elif isinstance(input_queue[0], Query):
+				query = input_queue[0]
+				print("Processing query: " + query.action)
+				if query.action == "summarize":
+					capture_and_summarize(pyboy)
 				input_queue.pop(0)
-			pyboy.tick(TICKS_PER_INPUT)
-			if len(input_queue) == 0:
-				save_state(pyboy)
-				capture_and_summarize(pyboy)
 	pyboy.stop()
 
 def load_state(pyboy: PyBoy) -> None:
@@ -122,7 +134,7 @@ def process_input(command: str):
 			times = int(split[1])
 		except ValueError:
 			pass
-	input_queue.append(Input(button, times))
+	input_queue.append(Action(button, times))
 
 
 if __name__ == "__main__":
