@@ -5,7 +5,7 @@ class Summarizer:
 	def __init__(self, secrets: dict, settings: dict):
 		self.server = secrets["server"]
 		self.server_token = secrets["server_token"]
-		self.model = secrets["model"]
+		self.model = settings["model"]
 		self.prompt = settings["prompt"]
 
 	def summarize(self, path: str) -> str:

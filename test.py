@@ -40,7 +40,7 @@ def main():
 	print("Saving output to " + output_path)
 	with open(output_path, "w") as f:
 		f.write("# Test Output\n\n")
-		f.write("Model: " + SECRETS["model"] + "\n\n")
+		f.write("Model: " + SETTINGS["model"] + "\n\n")
 		f.write("```\n" + SETTINGS["prompt"] + "\n```\n\n")
 		f.write("## Tests\n\n")
 		for summary in summaries:
