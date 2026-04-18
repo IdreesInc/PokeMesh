@@ -8,7 +8,7 @@ from meshcore import MeshCore, EventType
 from emulator import Emulator
 from gridify import gridify
 from summarizer import Summarizer
-from game_data import Locations
+from game_data import MAP_NAMES
 
 class Action:
 	VALID_BUTTONS = ["up", "down", "left", "right", "a", "b", "start", "select"]
@@ -73,9 +73,8 @@ def main():
 					output("Commands: " + ", ".join(Query.VALID_QUERIES) + "\nInputs: " + ", ".join(Action.VALID_BUTTONS))
 				elif query.action == "summarize":
 					capture_and_summarize(emulator)
-				# elif query.action == "where" or query.action == "location":
-				# 	location = get_location(pyboy)
-				# 	output(f"Location: {location}")
+				elif query.action == "where" or query.action == "location":
+					output(f"Location: {get_location(emulator)}")
 				# elif query.action == "coordinates" or query.action == "coords":
 				# 	coords = get_coordinates(pyboy)
 				# 	output(f"Coordinates: {coords[0]}, {coords[1]}")
@@ -167,10 +166,10 @@ def process_input(command: str):
 	else:
 		output("Unknown command: " + command)
 
-# def get_location(pyboy: PyBoy) -> str:
-# 	MAP_ADDRESS = 0xD35E
-# 	id = pyboy.memory[MAP_ADDRESS]
-# 	return Locations.get(id, "Unknown Location")
+def get_location(emulator: Emulator) -> str:
+	bank = emulator.read_address(0x02031DBC)
+	map_num = emulator.read_address(0x02031DBD)
+	return MAP_NAMES.get((bank, map_num), f"Unknown with bank={bank:#04x}, map={map_num:#04x}")
 
 # def get_coordinates(pyboy: PyBoy) -> tuple[int, int]:
 # 	X_ADDRESS = 0xD361

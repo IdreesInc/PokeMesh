@@ -41,3 +41,11 @@ class Emulator:
 		response = requests.post(ENDPOINT, params={"path": path})
 		if response.status_code != 200:
 			print("Failed to capture screenshot: " + response.text)
+
+	def read_address(self, address: int) -> int:
+		ENDPOINT = self.url + "/core/read8"
+		response = requests.get(ENDPOINT, params={"address": hex(address)})
+		if response.status_code != 200:
+			print("Failed to read memory: " + response.text)
+			return 0
+		return int(response.text)
