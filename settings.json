@@ -1,6 +1,7 @@
 {
 	"model": "google/gemma-4-26b-a4b",
 	"channel": 5,
+	"emulation_speed": 2.0,
 	"prompt": [
 		"Screenshot from the game Pokémon FireRed, taken from a Game Boy Advance.",
 		"Describe what's in this screenshot from Pokémon FireRed extremely briefly, in one or two sentences. Be concise and accurate, and don't make guesses. Respond as if talking to the player.",
