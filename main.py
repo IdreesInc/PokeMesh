@@ -18,7 +18,7 @@ class Action:
 		self.times = times
 
 class Query:
-	VALID_QUERIES = ["help", "summarize", "where", "coordinates"]
+	VALID_QUERIES = ["help", "summarize", "where"]
 
 	def __init__(self, action: str, value: str) -> None:
 		self.action = action
@@ -76,9 +76,6 @@ def main():
 					capture_and_summarize(emulator)
 				elif query.action == "where" or query.action == "location":
 					output(f"Location: {get_location(emulator)}")
-				# elif query.action == "coordinates" or query.action == "coords":
-				# 	coords = get_coordinates(pyboy)
-				# 	output(f"Coordinates: {coords[0]}, {coords[1]}")
 				input_queue.pop(0)
 		time.sleep(0.1)
 	# pyboy.stop()
@@ -171,11 +168,6 @@ def get_location(emulator: Emulator) -> str:
 	bank = emulator.read_address(0x02031DBC)
 	map_num = emulator.read_address(0x02031DBD)
 	return MAP_NAMES.get((bank, map_num), f"Unknown with bank={bank:#04x}, map={map_num:#04x}")
-
-# def get_coordinates(pyboy: PyBoy) -> tuple[int, int]:
-# 	X_ADDRESS = 0xD361
-# 	Y_ADDRESS = 0xD362
-# 	return (pyboy.memory[Y_ADDRESS], pyboy.memory[X_ADDRESS])
 
 def epoch_time() -> int:
 	return int(time.time())
