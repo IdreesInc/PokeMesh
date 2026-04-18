@@ -4,8 +4,8 @@ import asyncio
 import time
 import json
 from typing import NoReturn
-from pyboy import PyBoy
 from meshcore import MeshCore, EventType
+from emulator import Emulator
 from gridify import gridify
 from summarizer import Summarizer
 from game_data import Locations
@@ -28,6 +28,7 @@ SECRETS: dict = json.load(open("secrets.json"))
 SETTINGS: dict = json.load(open("settings.json"))
 SERVER: str = SECRETS["server"]
 SERVER_TOKEN: str = SECRETS["server_token"]
+MGBA_URL: str = SECRETS["mgba-url"]
 MODEL: str = SETTINGS["model"]
 PROMPT: str = "\n".join(SETTINGS["prompt"])
 ROM: str = SECRETS["rom"]
@@ -36,7 +37,7 @@ MODIFIED_IMG_PATH: str = "tmp/screenshot_grid.png"
 TICKS_PER_INPUT: int = 360
 TICKS_BEFORE_SUMMARY: int = 360
 CHANNEL_IDX = SETTINGS["channel"]
-SAVE_STATE_DIRECTORY = "resources/saves"
+SAVE_STATE_DIRECTORY = "resources/gba_saves"
 MAX_TIMES = 10
 
 summarizer = Summarizer(SECRETS, SETTINGS)
@@ -44,55 +45,61 @@ input_queue = list[Action|Query]()
 output_queue = list[str]()
 
 def main():
-	pyboy = PyBoy(ROM)
-	load_state(pyboy)
-	pyboy.tick(600)
+	emulator = Emulator(MGBA_URL)
+	# pyboy = PyBoy(ROM)
+	load_state(emulator)
+	# pyboy.tick(600)
 	input_thread = threading.Thread(target=input_loop)
 	input_thread.start()
 	meshcore_thread = threading.Thread(target=lambda: asyncio.run(connect_to_meshcore()), daemon=True)
 	meshcore_thread.start()
-	while pyboy.tick(1):
+	# while pyboy.tick(1):
+	while True:
 		if len(input_queue) > 0:
 			if isinstance(input_queue[0], Action):
 				current = input_queue[0]
 				print("Pressing " + current.button)
-				pyboy.button(current.button, 5)
+				# pyboy.button(current.button, 5)
+				emulator.press(current.button)
 				current.times -= 1
 				if current.times <= 0:
 					input_queue.pop(0)
-				pyboy.tick(TICKS_PER_INPUT)
+				# pyboy.tick(TICKS_PER_INPUT)
+				time.sleep(1)
 				if len(input_queue) == 0:
-					pyboy.tick(TICKS_BEFORE_SUMMARY)
-					save_state(pyboy)
-					capture_and_summarize(pyboy)
+					# pyboy.tick(TICKS_BEFORE_SUMMARY)
+					time.sleep(1)
+					save_state(emulator)
+					capture_and_summarize(emulator)
 			elif isinstance(input_queue[0], Query):
 				query = input_queue[0]
 				print("Processing query: " + query.action)
 				if query.action == "help":
 					output("Commands: " + ", ".join(Query.VALID_QUERIES) + "\nInputs: " + ", ".join(Action.VALID_BUTTONS))
 				elif query.action == "summarize":
-					capture_and_summarize(pyboy)
-				elif query.action == "where" or query.action == "location":
-					location = get_location(pyboy)
-					output(f"Location: {location}")
-				elif query.action == "coordinates" or query.action == "coords":
-					coords = get_coordinates(pyboy)
-					output(f"Coordinates: {coords[0]}, {coords[1]}")
+					capture_and_summarize(emulator)
+				# elif query.action == "where" or query.action == "location":
+				# 	location = get_location(pyboy)
+				# 	output(f"Location: {location}")
+				# elif query.action == "coordinates" or query.action == "coords":
+				# 	coords = get_coordinates(pyboy)
+				# 	output(f"Coordinates: {coords[0]}, {coords[1]}")
 				input_queue.pop(0)
-	pyboy.stop()
+		time.sleep(0.1)
+	# pyboy.stop()
 
-def load_state(pyboy: PyBoy) -> None:
-	save_files = [f for f in os.listdir(SAVE_STATE_DIRECTORY) if f.endswith(".state")]
+def load_state(emulator: Emulator) -> None:
+	save_files = [f for f in os.listdir(SAVE_STATE_DIRECTORY) if f.endswith(".ss1")]
 	if not save_files:
 		print("No save state found, starting fresh.")
 		return
 	save_files.sort(reverse=True)
-	with open(os.path.join(SAVE_STATE_DIRECTORY, save_files[0]), "rb") as f:
-		pyboy.load_state(f)
+	path = os.path.join(SAVE_STATE_DIRECTORY, save_files[0])
+	emulator.load_state(path)
 
-def save_state(pyboy: PyBoy) -> None:
-	with open(os.path.join(SAVE_STATE_DIRECTORY, f"save_{epoch_time()}.state"), "wb") as f:
-		pyboy.save_state(f)
+def save_state(emulator: Emulator) -> None:
+	with open(os.path.join(SAVE_STATE_DIRECTORY, f"save_{epoch_time()}.ss1"), "wb") as f:
+		emulator.save_state(f)
 
 async def connect_to_meshcore() -> NoReturn:
 	meshcore = await MeshCore.create_serial("/dev/tty.usbmodem441BF66A71281")
@@ -118,16 +125,13 @@ async def handle_message(event):
 async def send_message(meshcore: MeshCore, text: str):
 	await meshcore.commands.send_chan_msg(CHANNEL_IDX, text)
 
-def capture_and_summarize(pyboy: PyBoy):
+def capture_and_summarize(emulator: Emulator):
 	print("Capturing screenshot...")
-	screenshot = pyboy.screen.image
-	if screenshot:
-		screenshot.save(IMG_PATH)
-		gridify(IMG_PATH, MODIFIED_IMG_PATH, 16)
-		print("Summarizing screenshot...")
-		threading.Thread(target=lambda: output(summarizer.summarize(MODIFIED_IMG_PATH))).start()
-	else:
-		print("Screenshot failed!")
+	# screenshot = pyboy.screen.image
+	emulator.screenshot(IMG_PATH)
+	gridify(IMG_PATH, MODIFIED_IMG_PATH, 16)
+	print("Summarizing screenshot...")
+	threading.Thread(target=lambda: output(summarizer.summarize(MODIFIED_IMG_PATH))).start()
 
 def input_loop():
 	while True:
@@ -168,15 +172,15 @@ def process_input(command: str):
 	else:
 		output("Unknown command: " + command)
 
-def get_location(pyboy: PyBoy) -> str:
-	MAP_ADDRESS = 0xD35E
-	id = pyboy.memory[MAP_ADDRESS]
-	return Locations.get(id, "Unknown Location")
+# def get_location(pyboy: PyBoy) -> str:
+# 	MAP_ADDRESS = 0xD35E
+# 	id = pyboy.memory[MAP_ADDRESS]
+# 	return Locations.get(id, "Unknown Location")
 
-def get_coordinates(pyboy: PyBoy) -> tuple[int, int]:
-	X_ADDRESS = 0xD361
-	Y_ADDRESS = 0xD362
-	return (pyboy.memory[Y_ADDRESS], pyboy.memory[X_ADDRESS])
+# def get_coordinates(pyboy: PyBoy) -> tuple[int, int]:
+# 	X_ADDRESS = 0xD361
+# 	Y_ADDRESS = 0xD362
+# 	return (pyboy.memory[Y_ADDRESS], pyboy.memory[X_ADDRESS])
 
 def epoch_time() -> int:
 	return int(time.time())
