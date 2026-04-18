@@ -56,7 +56,7 @@ def main():
 			if isinstance(input_queue[0], Action):
 				current = input_queue[0]
 				print("Pressing " + current.button)
-				pyboy.button(current.button)
+				pyboy.button(current.button, 5)
 				current.times -= 1
 				if current.times <= 0:
 					input_queue.pop(0)

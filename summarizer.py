@@ -11,7 +11,10 @@ class Summarizer:
 	def summarize(self, path: str) -> str:
 		return self.request(self.prompt, path)
 
-	def request(self, message: str, image_path: str | None) -> str:
+	def request(self, message: str, image_path: str | None = None, replacements: list[tuple[str, str]] | None = None) -> str:
+		if replacements:
+			for value, template in replacements:
+				message = message.replace(value, template)
 		content: list = [
 			{
 				"type": "text",
