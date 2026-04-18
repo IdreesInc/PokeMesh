@@ -34,8 +34,8 @@ PROMPT: str = "\n".join(SETTINGS["prompt"])
 ROM: str = SECRETS["rom"]
 IMG_PATH: str = "tmp/screenshot.png"
 MODIFIED_IMG_PATH: str = "tmp/screenshot_grid.png"
-TICKS_PER_INPUT: int = 360
-TICKS_BEFORE_SUMMARY: int = 360
+SECONDS_PER_INPUT: float = 0.5
+SECONDS_BEFORE_SUMMARY: float = 4.0
 CHANNEL_IDX = SETTINGS["channel"]
 SAVE_STATE_DIRECTORY = "resources/gba_saves"
 MAX_TIMES = 10
@@ -46,29 +46,24 @@ output_queue = list[str]()
 
 def main():
 	emulator = Emulator(MGBA_URL)
-	# pyboy = PyBoy(ROM)
+	emulator.load_rom(ROM)
 	load_state(emulator)
-	# pyboy.tick(600)
 	input_thread = threading.Thread(target=input_loop)
 	input_thread.start()
 	meshcore_thread = threading.Thread(target=lambda: asyncio.run(connect_to_meshcore()), daemon=True)
 	meshcore_thread.start()
-	# while pyboy.tick(1):
 	while True:
 		if len(input_queue) > 0:
 			if isinstance(input_queue[0], Action):
 				current = input_queue[0]
 				print("Pressing " + current.button)
-				# pyboy.button(current.button, 5)
 				emulator.press(current.button)
 				current.times -= 1
 				if current.times <= 0:
 					input_queue.pop(0)
-				# pyboy.tick(TICKS_PER_INPUT)
-				time.sleep(1)
+				time.sleep(SECONDS_PER_INPUT)
 				if len(input_queue) == 0:
-					# pyboy.tick(TICKS_BEFORE_SUMMARY)
-					time.sleep(1)
+					time.sleep(SECONDS_BEFORE_SUMMARY)
 					save_state(emulator)
 					capture_and_summarize(emulator)
 			elif isinstance(input_queue[0], Query):
