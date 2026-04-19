@@ -18,7 +18,7 @@ class Action:
 		self.times = times
 
 class Query:
-	VALID_QUERIES = ["help", "where"]
+	VALID_QUERIES = ["help", "about", "where"]
 
 	def __init__(self, action: str, value: str) -> None:
 		self.action = action
@@ -77,6 +77,8 @@ def main():
 				print("Processing query: " + query.action)
 				if query.action == "help":
 					output("Queries: " + ", ".join(Query.VALID_QUERIES) + "\nInputs: " + ", ".join(Action.VALID_BUTTONS))
+				elif query.action == "about":
+					output("PokeMesh is a collaborative game of Pokémon FireRed! Players submit inputs where the most requested inputs are ran every " + str(TIME_BETWEEN_ROUNDS) + "s.")
 				elif query.action == "where" or query.action == "location":
 					output(f"Location: {get_location(emulator)}")
 				input_queue.pop(0)
