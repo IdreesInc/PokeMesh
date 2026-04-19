@@ -1,48 +1,109 @@
 # Place a grid over an image
+import os
 from PIL import Image, ImageDraw, ImageFont
 
 TILE_SIZE = 9
 ROW_INDEX_OFFSET = 4
 COL_INDEX_OFFSET = 7
+DEBUG = False
+
+LINE_WIDTH = 2
+GRID_OFFSET_Y = 8 * 2  # 8 pixels scaled by 2x
+LABEL_PADDING = 15
+
+
+def slice(total: int, offset: int, step: int) -> list[tuple[int, int]]:
+    slices = [(0, offset)]
+    pos = offset
+    while pos < total:
+        slices.append((pos, min(pos + step, total)))
+        pos += step
+    return slices
+
+
+def target_positions(slices: list[tuple[int, int]], gap: int) -> list[int]:
+    positions = []
+    pos = 0
+    for start, end in slices:
+        positions.append(pos)
+        pos += (end - start) + gap
+    return positions
+
+
+def redraw(coord: int, slices: list[tuple[int, int]], positions: list[int]) -> int:
+    for i, (s, e) in enumerate(slices):
+        if s <= coord < e:
+            return positions[i] + (coord - s)
+    return positions[-1] + (coord - slices[-1][0])
+
 
 def gridify(image_path: str, output_path: str, grid_size: int):
-	image = Image.open(image_path)
-	width, height = [x * 2 for x in image.size]
-	grid_size *= 2
-	image = image.resize((width, height), Image.Resampling.NEAREST)
+    image = Image.open(image_path)
+    width, height = image.width * 2, image.height * 2
+    grid_size *= 2
+    image = image.resize((width, height), Image.Resampling.NEAREST)
 
-	# Count the percentage of fully white pixels
-	white_pixels = 0
-	for pixel in image.getdata():
-		if isinstance(pixel, (tuple, list)) and pixel[0] > 240 and pixel[1] > 240 and pixel[2] > 240:
-			white_pixels += 1
-	total_pixels = width * height
-	white_percentage = white_pixels / total_pixels
+    # Padded canvas: one extra tile column on the left, one extra tile row on the bottom
+    canvas = Image.new(image.mode, (width + grid_size, height + grid_size), 0)
+    canvas.paste(image, (grid_size, 0))
+    padded_w, padded_h = canvas.size
 
-	# Add one tile of padding to the left and bottom
-	padded_width = width + grid_size
-	padded_height = height + grid_size
-	canvas = Image.new(image.mode, (padded_width, padded_height), 0)
-	canvas.paste(image, (grid_size, 0))
+    x_slices = slice(padded_w, grid_size, grid_size)
+    y_slices = slice(padded_h, GRID_OFFSET_Y, grid_size)
 
-	draw = ImageDraw.Draw(canvas)
+    xs = target_positions(x_slices, LINE_WIDTH)
+    ys = target_positions(y_slices, LINE_WIDTH)
 
-	grid_offset_y = 8 * 2  # 8 pixels (scaled by 2x)
+    new_w = sum(e - s for s, e in x_slices) + (len(x_slices) - 1) * LINE_WIDTH
+    new_h = sum(e - s for s, e in y_slices) + (len(y_slices) - 1) * LINE_WIDTH
+    out = Image.new(image.mode, (new_w, new_h), 0)
 
-	if white_percentage < 0.5:
-		for x in range(0, padded_width + 1, grid_size):
-			draw.line([(x - 1, 0), (x - 1, padded_height)], fill="red", width=2)
+    debug_dir = None
+    if DEBUG:
+        debug_dir = os.path.join(os.path.dirname(output_path), "tiles")
+        os.makedirs(debug_dir, exist_ok=True)
 
-		for y in range(grid_offset_y, padded_height + 1, grid_size):
-			draw.line([(0, y - 1), (padded_width, y - 1)], fill="red", width=2)
+    for iy, (y0, y1) in enumerate(y_slices):
+        for ix, (x0, x1) in enumerate(x_slices):
+            tile = canvas.crop((x0, y0, x1, y1))
+            out.paste(tile, (xs[ix], ys[iy]))
+            if DEBUG and debug_dir:
+                tile.save(os.path.join(debug_dir, f"tile_{iy}_{ix}.png"))
 
-	font = ImageFont.load_default(size=14)
-	padding = 15
-	for row in range(0, 9):
-		text = str(row - ROW_INDEX_OFFSET)
-		draw.text((grid_size - padding, grid_offset_y + row * grid_size + padding), text, fill="white", font=font)
-	for col in range(0, 15):
-		text = str(col - COL_INDEX_OFFSET)
-		draw.text(((col + 1) * grid_size + padding, height), text, fill="white", font=font)
+    draw = ImageDraw.Draw(out)
 
-	canvas.save(output_path)
+    for ix in range(1, len(x_slices)):
+        gx = xs[ix] - LINE_WIDTH
+        draw.rectangle([(gx, 0), (gx + LINE_WIDTH - 1, new_h - 1)], fill="red")
+
+    for iy in range(1, len(y_slices)):
+        gy = ys[iy] - LINE_WIDTH
+        draw.rectangle([(0, gy), (new_w - 1, gy + LINE_WIDTH - 1)], fill="red")
+
+    font = ImageFont.load_default(size=14)
+
+    def rx(v):
+        return redraw(v, x_slices, xs)
+
+    def ry(v):
+        return redraw(v, y_slices, ys)
+
+    for row in range(9):
+        draw.text(
+            (
+                rx(grid_size - LABEL_PADDING),
+                ry(GRID_OFFSET_Y + row * grid_size + LABEL_PADDING),
+            ),
+            str(row - ROW_INDEX_OFFSET),
+            fill="white",
+            font=font,
+        )
+    for col in range(15):
+        draw.text(
+            (rx((col + 1) * grid_size + LABEL_PADDING), ry(height)),
+            str(col - COL_INDEX_OFFSET),
+            fill="white",
+            font=font,
+        )
+
+    out.save(output_path)
