@@ -3,22 +3,24 @@ import os
 from PIL import Image, ImageDraw, ImageFont
 
 NAMED_TILES_DIR = "named_tiles"
+REPLACEMENT_TILES_DIR = "replacement_tiles"
+DOOR_TILE = "door.png"
 TILE_SIZE = 9
 ROW_INDEX_OFFSET = 4
 COL_INDEX_OFFSET = 7
 LINE_WIDTH = 2
 GRID_OFFSET_Y = 8 * 2  # 8 pixels scaled by 2x
 LABEL_PADDING = 15
-DEBUG = False
+DEBUG = True
 
-def load_named_tiles() -> dict[str, Image.Image]:
-	named_tiles: dict[str, Image.Image] = {}
-	for filename in os.listdir(NAMED_TILES_DIR):
+def load_saved_tiles(directory: str) -> dict[str, Image.Image]:
+	tiles: dict[str, Image.Image] = {}
+	for filename in os.listdir(directory):
 		if filename.endswith(".png"):
 			name = os.path.splitext(filename)[0]
-			path = os.path.join(NAMED_TILES_DIR, filename)
-			named_tiles[name] = Image.open(path)
-	return named_tiles
+			path = os.path.join(directory, filename)
+			tiles[name] = Image.open(path)
+	return tiles
 
 def compare_tiles(template: Image.Image, tile: Image.Image) -> bool:
 	if template.size != tile.size:
@@ -35,7 +37,8 @@ def gridify(image_path: str, output_path: str, grid_size: int):
 	grid_size *= 2
 	image = image.resize((width, height), Image.Resampling.NEAREST)
 	
-	named_tiles = load_named_tiles()
+	named_tiles = load_saved_tiles(NAMED_TILES_DIR)
+	replacement_tiles = load_saved_tiles(REPLACEMENT_TILES_DIR)
 
 	# Padded canvas: one extra tile column on the left, one extra tile row on the bottom
 	canvas = Image.new(image.mode, (width + grid_size, height + grid_size), 0)
@@ -63,6 +66,7 @@ def gridify(image_path: str, output_path: str, grid_size: int):
 			for name, template in named_tiles.items():
 				if compare_tiles(template, tile):
 					print(f"Tile at ({ix}, {iy}) matches '{name}'")
+					tile = replacement_tiles["door"]
 			out.paste(tile, (xs[ix], ys[iy]))
 			if DEBUG and debug_dir:
 				tile.save(os.path.join(debug_dir, f"tile_{iy}_{ix}.png"))
