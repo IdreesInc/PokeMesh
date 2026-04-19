@@ -107,7 +107,7 @@ def main():
 					most_requested = sequence
 			if most_requested:
 				input_queue.extend(most_requested)
-				output("Pressing buttons with " + str(max_requests) + f" vote{'' if max_requests == 1 else 's'}: " + ", ".join(f"{action.button} {action.times}" for action in most_requested) + "\nWait for summary...")
+				output("Pressing buttons with " + str(max_requests) + f" vote{'' if max_requests == 1 else 's'}: " + ", ".join(f"{action.button} {action.times}" for action in most_requested))
 			else:
 				print("No inputs requested this round")
 			input_requests.clear()
