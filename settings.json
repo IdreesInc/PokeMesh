@@ -13,6 +13,8 @@
 		"TEMPLATING:",
 		"To aid with identification, certain tiles have been replaced with templates that are easier to identify:",
 		"Doors = Entirely red tiles",
+		"Tall Grass = Entirely green tiles",
+		"Ledges = Dark brown tiles with a white arrow pointing in the direction they can be crossed",
 		"Not all elements will have been replaced, but if you see something that looks like a template, you can be sure of what it is.",
 		"OVERWORLD:",
 		"If the player is outside, describe possible routes or obstacles. Whether inside or outside, if there is an entrance/exit like a door, stairs, cave opening, etc., that is usually important. If there are important building entrances, NPCs, items in Pokéballs to be picked up, describe their location. When describing location, describe the tiles in each direction required to reach the target. When describing the number of tiles, write the numbers as digits. Only describe location when we are in the overworld, do not do so during dialogue, battles, or menus. Ledges are important to note as they can only be crossed in one direction. Tall grass is important to note as it can trigger wild Pokémon battles. Be aware of obstacles like trees and water.",
@@ -25,9 +27,7 @@
 		"Here is a non-exhaustive list of descriptions that might help with screenshot comprehension:",
 		"Pokémon Center: A building with an orange-red roof and a stylized Pokéball symbol above the blue doorway",
 		"Poké Mart: A building with a blue roof and a stylized Pokéball symbol above a blue doorway",
-		"Tall Grass: Dark green, 8-leaved plants on the ground. Not to be confused with flat green tiles with little lines that are just part of the ground, round bushes, or flowers",
 		"Signs: Can be wooden brown rectangles on a post or metallic grey rectangles with red writing (don't get this confused with an item)",
-		"Ledge: Thick brown rocky lines that extend a few tiles",
 		"Exits: Look like two tile wide red carpets in buildings",
 		"Doors: Doors from the outside can vary depending on the building. For buildings with green roofs, the doors are usually yellow with vertical stripes. For important buildings, the doors are usually a blue gradient. There are other door styles too.",
 		"Lastly, you're going to do great, Program! I believe in you!"

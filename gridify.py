@@ -11,6 +11,7 @@ COL_INDEX_OFFSET = 7
 LINE_WIDTH = 2
 GRID_OFFSET_Y = 8 * 2  # 8 pixels scaled by 2x
 LABEL_PADDING = 15
+FUZZY_MATCH_THRESHOLD = 0.75
 DEBUG = True
 
 def load_saved_tiles(directory: str) -> dict[str, Image.Image]:
@@ -22,14 +23,16 @@ def load_saved_tiles(directory: str) -> dict[str, Image.Image]:
 			tiles[name] = Image.open(path)
 	return tiles
 
-def compare_tiles(template: Image.Image, tile: Image.Image) -> bool:
+def compare_tiles(template: Image.Image, tile: Image.Image) -> float:
+	total_pixels: int = template.width * template.height
+	matched_pixels: int = 0
 	if template.size != tile.size:
-		return False
+		return 0.0
 	for x in range(template.width):
 		for y in range(template.height):
-			if template.getpixel((x, y)) != tile.getpixel((x, y)):
-				return False
-	return True
+			if template.getpixel((x, y)) == tile.getpixel((x, y)):
+				matched_pixels += 1
+	return matched_pixels / total_pixels if total_pixels > 0 else 0.0
 
 def gridify(image_path: str, output_path: str, grid_size: int):
 	image = Image.open(image_path)
@@ -64,9 +67,12 @@ def gridify(image_path: str, output_path: str, grid_size: int):
 		for ix, (x0, x1) in enumerate(x_slices):
 			tile = canvas.crop((x0, y0, x1, y1))
 			for name, template in named_tiles.items():
-				if compare_tiles(template, tile):
-					print(f"Tile at ({ix}, {iy}) matches '{name}'")
-					tile = replacement_tiles["door"]
+				match = compare_tiles(template, tile)
+				if match > FUZZY_MATCH_THRESHOLD:
+					print(f"Tile at ({ix}, {iy}) matches '{name}' with {match:.2%} similarity")
+					replacement_name = name.split("_")[-1]
+					tile = replacement_tiles.get(replacement_name, tile)
+					break
 			out.paste(tile, (xs[ix], ys[iy]))
 			if DEBUG and debug_dir:
 				tile.save(os.path.join(debug_dir, f"tile_{iy}_{ix}.png"))
