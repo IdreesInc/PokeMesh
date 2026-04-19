@@ -12,7 +12,7 @@
 		"Priorities in order: 1. Dialogue 2. Battle 3. Entrances/Exits 4. Important building 5. NPCs/Items 6. Tall grass 7. Ledges/Obstacles",
 		"TEMPLATING:",
 		"To aid with identification, certain tiles have been replaced with templates that are easier to identify:",
-		"Doors = Entirely red tiles",
+		"Doors = Red tiles with a white arrow pointing in the direction they can be entered/exited",
 		"Tall Grass = Entirely bright green tiles",
 		"Ledges = Dark brown tiles with a white arrow pointing in the direction they can be crossed",
 		"Not all elements will have been replaced, but if you see something that looks like a template, you can be sure of what it is.",
