@@ -73,6 +73,8 @@ def preprocess(image_path: str, output_path: str, grid_size: int):
 	for iy, (y0, y1) in enumerate(y_slices):
 		for ix, (x0, x1) in enumerate(x_slices):
 			tile = canvas.crop((x0, y0, x1, y1))
+			if DEBUG and debug_dir:
+				tile.save(os.path.join(debug_dir, f"tile_{iy}_{ix}.png"))
 			for name, template in named_tiles.items():
 				match = compare_tiles(template, tile)
 				if match > FUZZY_MATCH_THRESHOLD:
@@ -82,8 +84,6 @@ def preprocess(image_path: str, output_path: str, grid_size: int):
 					tile = replacement_tiles.get(replacement_name, tile)
 					break
 			out.paste(tile, (xs[ix], ys[iy]))
-			if DEBUG and debug_dir:
-				tile.save(os.path.join(debug_dir, f"tile_{iy}_{ix}.png"))
 
 	draw = ImageDraw.Draw(out)
 
