@@ -6,7 +6,7 @@ import json
 from typing import NoReturn
 from meshcore import MeshCore, EventType
 from emulator import Emulator
-from gridify import gridify
+from preprocessor import preprocess
 from summarizer import Summarizer
 from game_data import MAP_NAMES
 
@@ -152,7 +152,7 @@ def capture_and_summarize(emulator: Emulator):
 	print("Capturing screenshot...")
 	# screenshot = pyboy.screen.image
 	emulator.screenshot(IMG_PATH)
-	gridify(IMG_PATH, MODIFIED_IMG_PATH, 16)
+	preprocess(IMG_PATH, MODIFIED_IMG_PATH, 16)
 	print("Summarizing screenshot...")
 	threading.Thread(target=lambda: output_summary(summarizer.summarize(MODIFIED_IMG_PATH))).start()
 

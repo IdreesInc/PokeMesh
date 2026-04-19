@@ -1,4 +1,3 @@
-# Place a grid over an image
 import os
 from PIL import Image, ImageDraw, ImageFont
 
@@ -9,9 +8,10 @@ TILE_SIZE = 9
 ROW_INDEX_OFFSET = 4
 COL_INDEX_OFFSET = 7
 LINE_WIDTH = 2
-GRID_OFFSET_Y = 8 * 2  # 8 pixels scaled by 2x
+GRID_OFFSET_Y = 8 * 2
 LABEL_PADDING = 15
 FUZZY_MATCH_THRESHOLD = 0.75
+COLOR_DISTANCE_THRESHOLD = 30
 DEBUG = True
 
 def load_saved_tiles(directory: str) -> dict[str, Image.Image]:
@@ -23,6 +23,13 @@ def load_saved_tiles(directory: str) -> dict[str, Image.Image]:
 			tiles[name] = Image.open(path)
 	return tiles
 
+def color_distance(c1, c2) -> float:
+	if isinstance(c1, int):
+		c1 = (c1,)
+	if isinstance(c2, int):
+		c2 = (c2,)
+	return sum((a - b) ** 2 for a, b in zip(c1, c2)) ** 0.5
+
 def compare_tiles(template: Image.Image, tile: Image.Image) -> float:
 	total_pixels: int = template.width * template.height
 	matched_pixels: int = 0
@@ -30,11 +37,11 @@ def compare_tiles(template: Image.Image, tile: Image.Image) -> float:
 		return 0.0
 	for x in range(template.width):
 		for y in range(template.height):
-			if template.getpixel((x, y)) == tile.getpixel((x, y)):
+			if color_distance(template.getpixel((x, y)), tile.getpixel((x, y))) <= COLOR_DISTANCE_THRESHOLD:
 				matched_pixels += 1
 	return matched_pixels / total_pixels if total_pixels > 0 else 0.0
 
-def gridify(image_path: str, output_path: str, grid_size: int):
+def preprocess(image_path: str, output_path: str, grid_size: int):
 	image = Image.open(image_path)
 	width, height = image.width * 2, image.height * 2
 	grid_size *= 2
@@ -48,8 +55,8 @@ def gridify(image_path: str, output_path: str, grid_size: int):
 	canvas.paste(image, (grid_size, 0))
 	padded_w, padded_h = canvas.size
 
-	x_slices = slice(padded_w, grid_size, grid_size)
-	y_slices = slice(padded_h, GRID_OFFSET_Y, grid_size)
+	x_slices = tile_slice(padded_w, grid_size, grid_size)
+	y_slices = tile_slice(padded_h, GRID_OFFSET_Y, grid_size)
 
 	xs = target_positions(x_slices, LINE_WIDTH)
 	ys = target_positions(y_slices, LINE_WIDTH)
@@ -69,7 +76,7 @@ def gridify(image_path: str, output_path: str, grid_size: int):
 			for name, template in named_tiles.items():
 				match = compare_tiles(template, tile)
 				if match > FUZZY_MATCH_THRESHOLD:
-					print(f"Tile at ({ix}, {iy}) matches '{name}' with {match:.2%} similarity")
+					print(f"Tile at ({iy}, {ix}) matches '{name}' with {match:.2%} similarity")
 					replacement_name = name.split("_")[-1]
 					tile = replacement_tiles.get(replacement_name, tile)
 					break
@@ -115,7 +122,7 @@ def gridify(image_path: str, output_path: str, grid_size: int):
 
 	out.save(output_path)
 
-def slice(total: int, offset: int, step: int) -> list[tuple[int, int]]:
+def tile_slice(total: int, offset: int, step: int) -> list[tuple[int, int]]:
 	slices = [(0, offset)]
 	pos = offset
 	while pos < total:

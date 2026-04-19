@@ -3,7 +3,7 @@ import json
 import time
 import base64
 from summarizer import Summarizer
-from gridify import gridify
+from preprocessor import preprocess
 
 SECRETS: dict = json.load(open("secrets.json"))
 SETTINGS: dict = json.load(open("settings.json"))
@@ -26,7 +26,7 @@ def main():
 			print("Processing " + filename)
 			src_path = os.path.join(TEST_FOLDER, IMAGE_FOLDER, filename)
 			grid_path = os.path.join(tmp_path, filename)
-			gridify(src_path, grid_path, 16)
+			preprocess(src_path, grid_path, 16)
 			t_start = time.time()
 			summary = summarizer.summarize(grid_path)
 			elapsed = time.time() - t_start
