@@ -3,6 +3,7 @@ import threading
 import asyncio
 import time
 import json
+import random
 from typing import NoReturn
 from meshcore import MeshCore, EventType
 from emulator import Emulator
@@ -11,7 +12,7 @@ from summarizer import Summarizer
 from game_data import MAP_NAMES
 
 class Action:
-	VALID_BUTTONS = ["up", "down", "left", "right", "a", "b", "start", "select"]
+	VALID_BUTTONS = ["up", "down", "left", "right", "a", "b", "start", "select", "random"]
 	
 	def __init__(self, button: str, times: int = 1):
 		self.button = button
@@ -44,6 +45,7 @@ SECONDS_PER_INPUT: float = 0.5 / EMULATION_SPEED
 SECONDS_BEFORE_SUMMARY: float = 4.0 / EMULATION_SPEED
 CHANNEL_IDX = SETTINGS["channel"]
 SAVE_STATE_DIRECTORY = "resources/gba_saves"
+RANDOM_BUTTONS = ["up", "down", "left", "right"]
 
 summarizer = Summarizer(SECRETS, SETTINGS)
 input_queue = list[Action|Query]()
@@ -68,7 +70,12 @@ def main():
 			if isinstance(input_queue[0], Action):
 				current = input_queue[0]
 				print("Pressing " + current.button)
-				emulator.press(current.button)
+				if current.button == "random":
+					random_button = random.choice(RANDOM_BUTTONS)
+					print("Randomly pressing " + random_button)
+					emulator.press(random_button)
+				else:
+					emulator.press(current.button)
 				current.times -= 1
 				if current.times <= 0:
 					input_queue.pop(0)
