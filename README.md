@@ -1,4 +1,4 @@
-# MeshCore Plays Pokémon
+# PokeMesh: MeshCore Plays Pokémon
 
 ![License](https://img.shields.io/github/license/IdreesInc/PokeMesh)
 [![Discord](https://img.shields.io/discord/1398471368403583120?logo=discord&logoColor=fff&label=discord&color=5865F2)](https://discord.gg/6yxE9prcNc)
