@@ -35,6 +35,7 @@ ROM: str = SECRETS["rom"]
 EMULATION_SPEED: float = SETTINGS["emulation_speed"]
 MAX_TIMES: int = SETTINGS["max_inputs"]
 TIME_BETWEEN_ROUNDS: float = SETTINGS["time_between_rounds"]
+PREFIX: str = SETTINGS["prefix"]
 
 IMG_PATH: str = "tmp/screenshot.png"
 MODIFIED_IMG_PATH: str = "tmp/screenshot_grid.png"
@@ -48,7 +49,11 @@ input_queue = list[Action|Query]()
 output_queue = list[str]()
 # Map of users to requested inputs
 input_requests: dict[str, list[Action]] = {}
+round_end_time = 0.0
+
 def main():
+	global round_end_time
+	
 	emulator = Emulator(MGBA_URL)
 	emulator.load_rom(ROM)
 	load_state(emulator)
@@ -57,7 +62,6 @@ def main():
 	meshcore_thread = threading.Thread(target=lambda: asyncio.run(connect_to_meshcore()), daemon=True)
 	meshcore_thread.start()
 	
-	round_end_time = 0.0
 	while True:
 		if len(input_queue) > 0:
 			if isinstance(input_queue[0], Action):
@@ -78,7 +82,7 @@ def main():
 				if query.action == "help":
 					output("Queries: " + ", ".join(Query.VALID_QUERIES) + "\nInputs: " + ", ".join(Action.VALID_BUTTONS))
 				elif query.action == "about":
-					output("PokeMesh is a collaborative game of Pokémon FireRed! Players submit inputs where the most requested inputs are ran every " + str(TIME_BETWEEN_ROUNDS) + "s.")
+					output("PokeMesh is a collaborative game of Pokémon FireRed! Players submit inputs where the most requested inputs are ran every " + str(int(TIME_BETWEEN_ROUNDS)) + "s.")
 				elif query.action == "where" or query.action == "location":
 					output(f"Location: {get_location(emulator)}")
 				input_queue.pop(0)
@@ -96,11 +100,12 @@ def main():
 					most_requested = sequence
 			if most_requested:
 				input_queue.extend(most_requested)
-				output("Pressing buttons with " + str(max_requests) + f" vote{'' if max_requests == 1 else 's'}: " + ", ".join(f"{action.button} {action.times}" for action in most_requested))
+				output("Pressing buttons with " + str(max_requests) + f" vote{'' if max_requests == 1 else 's'}: " + ", ".join(f"{action.button} {action.times}" for action in most_requested) + "\nWait for summary...")
 			else:
 				print("No inputs requested this round")
 			input_requests.clear()
-			round_end_time = time.time() + TIME_BETWEEN_ROUNDS
+			# Set extended time just in case summary fails
+			round_end_time = time.time() + TIME_BETWEEN_ROUNDS * 3
 		time.sleep(0.1)
 
 def load_state(emulator: Emulator) -> None:
@@ -131,11 +136,14 @@ async def connect_to_meshcore() -> NoReturn:
 async def handle_message(event):
 	msg = event.payload or {}
 	chan = msg.get("channel_idx")
-	text = msg.get("text", "")
+	full_text = msg.get("text", "")
 	path_len = msg.get("path_len")
-	sender = text.split(":", 1)[0].strip()
-	print(f"{text} > channel {chan}, path_len={path_len}")
-	process_input(text.split(":", 1)[1].strip(), sender)
+	sender = full_text.split(":", 1)[0].strip()
+	text = full_text.split(":", 1)[1].strip()
+	print(f"[{sender}]: {text} > channel {chan}, path_len={path_len}")
+	if chan == CHANNEL_IDX and text.startswith(PREFIX):
+		text = text[len(PREFIX):].strip()
+		process_input(text, sender)
 
 async def send_message(meshcore: MeshCore, text: str):
 	await meshcore.commands.send_chan_msg(CHANNEL_IDX, text)
@@ -146,7 +154,12 @@ def capture_and_summarize(emulator: Emulator):
 	emulator.screenshot(IMG_PATH)
 	gridify(IMG_PATH, MODIFIED_IMG_PATH, 16)
 	print("Summarizing screenshot...")
-	threading.Thread(target=lambda: output(summarizer.summarize(MODIFIED_IMG_PATH))).start()
+	threading.Thread(target=lambda: output_summary(summarizer.summarize(MODIFIED_IMG_PATH))).start()
+
+def output_summary(summary: str):
+	global round_end_time
+	output(summary)
+	round_end_time = time.time() + TIME_BETWEEN_ROUNDS
 
 def input_loop():
 	while True:
