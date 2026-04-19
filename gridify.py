@@ -2,6 +2,8 @@
 from PIL import Image, ImageDraw, ImageFont
 
 TILE_SIZE = 9
+ROW_INDEX_OFFSET = 4
+COL_INDEX_OFFSET = 7
 
 def gridify(image_path: str, output_path: str, grid_size: int):
 	image = Image.open(image_path)
@@ -35,10 +37,12 @@ def gridify(image_path: str, output_path: str, grid_size: int):
 			draw.line([(0, y - 1), (padded_width, y - 1)], fill="red", width=2)
 
 	font = ImageFont.load_default(size=14)
-	padding = 10
+	padding = 15
 	for row in range(0, 9):
-		draw.text((grid_size - padding, grid_offset_y + row * grid_size + padding), str(row), fill="white", font=font)
+		text = str(row - ROW_INDEX_OFFSET)
+		draw.text((grid_size - padding, grid_offset_y + row * grid_size + padding), text, fill="white", font=font)
 	for col in range(0, 15):
-		draw.text(((col + 1) * grid_size + padding, height), str(col), fill="white", font=font)
+		text = str(col - COL_INDEX_OFFSET)
+		draw.text(((col + 1) * grid_size + padding, height), text, fill="white", font=font)
 
 	canvas.save(output_path)
