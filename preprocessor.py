@@ -76,7 +76,8 @@ def preprocess(image_path: str, output_path: str, grid_size: int):
 			for name, template in named_tiles.items():
 				match = compare_tiles(template, tile)
 				if match > FUZZY_MATCH_THRESHOLD:
-					print(f"Tile at ({iy}, {ix}) matches '{name}' with {match:.2%} similarity")
+					if DEBUG:
+						print(f"Tile at ({iy}, {ix}) matches '{name}' with {match:.2%} similarity")
 					replacement_name = name.split("_")[-1]
 					tile = replacement_tiles.get(replacement_name, tile)
 					break
@@ -88,11 +89,11 @@ def preprocess(image_path: str, output_path: str, grid_size: int):
 
 	for ix in range(1, len(x_slices)):
 		gx = xs[ix] - LINE_WIDTH
-		draw.rectangle([(gx, 0), (gx + LINE_WIDTH - 1, new_h - 1)], fill="red")
+		draw.rectangle([(gx, 0), (gx + LINE_WIDTH - 1, new_h - 1)], fill="black")
 
-	for iy in range(1, len(y_slices)):
+	for iy in range(1, len(y_slices) - 1):
 		gy = ys[iy] - LINE_WIDTH
-		draw.rectangle([(0, gy), (new_w - 1, gy + LINE_WIDTH - 1)], fill="red")
+		draw.rectangle([(0, gy), (new_w - 1, gy + LINE_WIDTH - 1)], fill="black")
 
 	font = ImageFont.load_default(size=14)
 
@@ -105,19 +106,21 @@ def preprocess(image_path: str, output_path: str, grid_size: int):
 	for row in range(9):
 		draw.text(
 			(
-				rx(grid_size - LABEL_PADDING),
-				ry(GRID_OFFSET_Y + row * grid_size + LABEL_PADDING),
+				rx(grid_size // 2),
+				ry(GRID_OFFSET_Y + row * grid_size + grid_size // 2),
 			),
 			str(row - ROW_INDEX_OFFSET),
 			fill="white",
 			font=font,
+			anchor="mm",
 		)
 	for col in range(15):
 		draw.text(
-			(rx((col + 1) * grid_size + LABEL_PADDING), ry(height)),
+			(rx((col + 1) * grid_size + grid_size // 2), ry(height + grid_size // 2)),
 			str(col - COL_INDEX_OFFSET),
 			fill="white",
 			font=font,
+			anchor="mm",
 		)
 
 	out.save(output_path)
