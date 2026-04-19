@@ -36,6 +36,7 @@ EMULATION_SPEED: float = SETTINGS["emulation_speed"]
 MAX_TIMES: int = SETTINGS["max_inputs"]
 TIME_BETWEEN_ROUNDS: float = SETTINGS["time_between_rounds"]
 PREFIX: str = SETTINGS["prefix"]
+LOCAL: bool = SECRETS.get("local", False)
 
 IMG_PATH: str = "tmp/screenshot.png"
 MODIFIED_IMG_PATH: str = "tmp/screenshot_grid.png"
@@ -173,7 +174,8 @@ def input_loop():
 
 def output(message: str):
 	print(message)
-	output_queue.append(message)
+	if not LOCAL:
+		output_queue.append(message)
 
 def process_input(command: str, sender: str | None = None):
 	split = command.lower().split()
