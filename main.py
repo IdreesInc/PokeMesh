@@ -18,7 +18,7 @@ class Action:
 		self.times = times
 
 class Query:
-	VALID_QUERIES = ["help", "summarize", "where"]
+	VALID_QUERIES = ["help", "where"]
 
 	def __init__(self, action: str, value: str) -> None:
 		self.action = action
@@ -32,19 +32,22 @@ MGBA_URL: str = SECRETS["mgba-url"]
 MODEL: str = SETTINGS["model"]
 PROMPT: str = "\n".join(SETTINGS["prompt"])
 ROM: str = SECRETS["rom"]
-EMULATION_SPEED: float = SETTINGS.get("emulation_speed", 1.0)
+EMULATION_SPEED: float = SETTINGS["emulation_speed"]
+MAX_TIMES: int = SETTINGS["max_inputs"]
+TIME_BETWEEN_ROUNDS: float = SETTINGS["time_between_rounds"]
+
 IMG_PATH: str = "tmp/screenshot.png"
 MODIFIED_IMG_PATH: str = "tmp/screenshot_grid.png"
 SECONDS_PER_INPUT: float = 0.5 / EMULATION_SPEED
 SECONDS_BEFORE_SUMMARY: float = 4.0 / EMULATION_SPEED
 CHANNEL_IDX = SETTINGS["channel"]
 SAVE_STATE_DIRECTORY = "resources/gba_saves"
-MAX_TIMES = 10
 
 summarizer = Summarizer(SECRETS, SETTINGS)
 input_queue = list[Action|Query]()
 output_queue = list[str]()
-
+# Map of users to requested inputs
+input_requests: dict[str, list[Action]] = {}
 def main():
 	emulator = Emulator(MGBA_URL)
 	emulator.load_rom(ROM)
@@ -53,6 +56,8 @@ def main():
 	input_thread.start()
 	meshcore_thread = threading.Thread(target=lambda: asyncio.run(connect_to_meshcore()), daemon=True)
 	meshcore_thread.start()
+	
+	round_end_time = 0.0
 	while True:
 		if len(input_queue) > 0:
 			if isinstance(input_queue[0], Action):
@@ -71,14 +76,30 @@ def main():
 				query = input_queue[0]
 				print("Processing query: " + query.action)
 				if query.action == "help":
-					output("Commands: " + ", ".join(Query.VALID_QUERIES) + "\nInputs: " + ", ".join(Action.VALID_BUTTONS))
-				elif query.action == "summarize":
-					capture_and_summarize(emulator)
+					output("Queries: " + ", ".join(Query.VALID_QUERIES) + "\nInputs: " + ", ".join(Action.VALID_BUTTONS))
 				elif query.action == "where" or query.action == "location":
 					output(f"Location: {get_location(emulator)}")
 				input_queue.pop(0)
+		elif time.time() > round_end_time:
+			print("Round ended. Processing input requests...")
+			# Map of input sequence hashes to number of requests for that sequence
+			unique_requests: dict[tuple[tuple[str, int], ...], int] = {}
+			most_requested = None
+			max_requests = 0
+			for user, sequence in input_requests.items():
+				hashable = tuple((request.button, request.times) for request in sequence)
+				unique_requests[hashable] = unique_requests.get(hashable, 0) + 1
+				if unique_requests[hashable] > max_requests:
+					max_requests = unique_requests[hashable]
+					most_requested = sequence
+			if most_requested:
+				input_queue.extend(most_requested)
+				output("Pressing buttons with " + str(max_requests) + f" vote{'' if max_requests == 1 else 's'}: " + ", ".join(f"{action.button} {action.times}" for action in most_requested))
+			else:
+				print("No inputs requested this round")
+			input_requests.clear()
+			round_end_time = time.time() + TIME_BETWEEN_ROUNDS
 		time.sleep(0.1)
-	# pyboy.stop()
 
 def load_state(emulator: Emulator) -> None:
 	save_files = [f for f in os.listdir(SAVE_STATE_DIRECTORY) if f.endswith(".ss1")]
@@ -112,7 +133,7 @@ async def handle_message(event):
 	path_len = msg.get("path_len")
 	sender = text.split(":", 1)[0].strip()
 	print(f"{text} > channel {chan}, path_len={path_len}")
-	process_input(text.split(":", 1)[1].strip())
+	process_input(text.split(":", 1)[1].strip(), sender)
 
 async def send_message(meshcore: MeshCore, text: str):
 	await meshcore.commands.send_chan_msg(CHANNEL_IDX, text)
@@ -133,7 +154,7 @@ def output(message: str):
 	print(message)
 	output_queue.append(message)
 
-def process_input(command: str):
+def process_input(command: str, sender: str | None = None):
 	split = command.lower().split()
 	if len(split) == 0:
 		return
@@ -158,7 +179,11 @@ def process_input(command: str):
 		if total_times > MAX_TIMES:
 			output(f"Too many inputs at once: {total_times} > {MAX_TIMES}")
 		else:
-			input_queue.extend(new_inputs)
+			if sender is not None:
+				input_requests[sender] = new_inputs
+				print(f"{sender} has requested " + ", ".join(f"{action.button} {action.times}" for action in new_inputs))
+			else:
+				input_queue.extend(new_inputs)
 	elif command in Query.VALID_QUERIES:
 		input_queue.append(Query(command, ""))
 	else:
