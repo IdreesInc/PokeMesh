@@ -33,7 +33,6 @@ SERVER_TOKEN: str = SECRETS["server_token"]
 MGBA_URL: str = SECRETS["mgba-url"]
 MODEL: str = SETTINGS["model"]
 PROMPT: str = "\n".join(SETTINGS["prompt"])
-ROM: str = SECRETS["rom"]
 EMULATION_SPEED: float = SETTINGS["emulation_speed"]
 MAX_TIMES: int = SETTINGS["max_inputs"]
 TIME_BETWEEN_ROUNDS: float = SETTINGS["time_between_rounds"]
@@ -60,7 +59,6 @@ bonk_counter = 0
 def main():
 	global round_end_time
 	emulator = Emulator(MGBA_URL)
-	emulator.load_rom(ROM)
 	load_state(emulator)
 	input_thread = threading.Thread(target=input_loop)
 	input_thread.start()
