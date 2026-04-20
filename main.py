@@ -53,10 +53,10 @@ output_queue = list[str]()
 # Map of users to requested inputs
 input_requests: dict[str, list[Action]] = {}
 round_end_time = 0.0
+bonk_counter = 0
 
 def main():
 	global round_end_time
-	
 	emulator = Emulator(MGBA_URL)
 	emulator.load_rom(ROM)
 	load_state(emulator)
@@ -64,7 +64,9 @@ def main():
 	input_thread.start()
 	meshcore_thread = threading.Thread(target=lambda: asyncio.run(connect_to_meshcore()), daemon=True)
 	meshcore_thread.start()
-	
+	bonk_thread = threading.Thread(target=lambda: asyncio.run(bonk_loop(emulator)), daemon=True)
+	bonk_thread.start()
+	bonks_at_start = 0
 	while True:
 		if len(input_queue) > 0:
 			if isinstance(input_queue[0], Action):
@@ -81,6 +83,8 @@ def main():
 					input_queue.pop(0)
 				time.sleep(SECONDS_PER_INPUT)
 				if len(input_queue) == 0:
+					if bonk_counter > bonks_at_start:
+						output(f"Detected {bonk_counter - bonks_at_start} bonk{'' if bonk_counter - bonks_at_start == 1 else 's'}")
 					time.sleep(SECONDS_BEFORE_SUMMARY)
 					save_state(emulator)
 					capture_and_summarize(emulator)
@@ -102,6 +106,7 @@ def main():
 				input_queue.pop(0)
 		elif time.time() > round_end_time:
 			print("Round ended. Processing input requests...")
+			bonks_at_start = bonk_counter
 			# Map of input sequence hashes to number of requests for that sequence
 			unique_requests: dict[tuple[tuple[str, int], ...], int] = {}
 			most_requested = None
@@ -121,6 +126,18 @@ def main():
 			# Set extended time just in case summary fails
 			round_end_time = time.time() + TIME_BETWEEN_ROUNDS * 3
 		time.sleep(0.1)
+
+async def bonk_loop(emulator: Emulator) -> NoReturn:
+	global bonk_counter
+	last_bonk = None
+	while True:
+		bonk = emulator.read_address(0x03002518) == 0xB6
+		if bonk != last_bonk:
+			if bonk:
+				print("Bonk")
+				bonk_counter += 1
+			last_bonk = bonk
+		await asyncio.sleep(0.1)
 
 def load_state(emulator: Emulator) -> None:
 	save_files = [f for f in os.listdir(SAVE_STATE_DIRECTORY) if f.endswith(".ss1")]
