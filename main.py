@@ -37,7 +37,7 @@ ROM: str = SECRETS["rom"]
 EMULATION_SPEED: float = SETTINGS["emulation_speed"]
 MAX_TIMES: int = SETTINGS["max_inputs"]
 TIME_BETWEEN_ROUNDS: float = SETTINGS["time_between_rounds"]
-PREFIX: str = SETTINGS["prefix"]
+PREFIXES: list[str] = SETTINGS["prefixes"]
 LOCAL: bool = SECRETS.get("local", False)
 
 IMG_PATH: str = "tmp/screenshot.png"
@@ -179,10 +179,13 @@ async def handle_message(event):
 	sender = full_text.split(":", 1)[0].strip()
 	text = full_text.split(":", 1)[1].strip()
 	print(f"[{sender}]: {text} > channel {chan}, path_len={path_len}")
-	if chan == CHANNEL_IDX and text.startswith(PREFIX):
-		text = text[len(PREFIX):].strip()
-		process_input(text, sender)
-		stats.increment_user_action(sender)
+	if chan == CHANNEL_IDX:
+		for prefix in PREFIXES:
+			if text.startswith(prefix):
+				text = text[len(prefix):].strip()
+				process_input(text, sender)
+				stats.increment_user_action(sender)
+				break
 
 async def send_message(meshcore: MeshCore, text: str):
 	await meshcore.commands.send_chan_msg(CHANNEL_IDX, text)
@@ -191,9 +194,9 @@ def capture_and_summarize(emulator: Emulator):
 	print("Capturing screenshot...")
 	# screenshot = pyboy.screen.image
 	emulator.screenshot(IMG_PATH)
-	preprocess(IMG_PATH, MODIFIED_IMG_PATH, 16)
+	matches = preprocess(IMG_PATH, MODIFIED_IMG_PATH, 16)
 	print("Summarizing screenshot...")
-	threading.Thread(target=lambda: output_summary(summarizer.summarize(MODIFIED_IMG_PATH))).start()
+	threading.Thread(target=lambda: output_summary(summarizer.summarize(MODIFIED_IMG_PATH, matches))).start()
 
 def output_summary(summary: str):
 	global round_end_time

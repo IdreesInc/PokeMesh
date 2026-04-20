@@ -26,9 +26,9 @@ def main():
 			print("Processing " + filename)
 			src_path = os.path.join(TEST_FOLDER, IMAGE_FOLDER, filename)
 			grid_path = os.path.join(tmp_path, filename)
-			preprocess(src_path, grid_path, 16)
+			matches = preprocess(src_path, grid_path, 16)
 			t_start = time.time()
-			summary = summarizer.summarize(grid_path)
+			summary = summarizer.summarize(grid_path, matches)
 			elapsed = time.time() - t_start
 			with open(src_path, "rb") as img_f:
 				data_url = "data:image/png;base64," + base64.b64encode(img_f.read()).decode()

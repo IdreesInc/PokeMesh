@@ -8,8 +8,9 @@ class Summarizer:
 		self.model = settings["model"]
 		self.prompt = "\n".join(settings["prompt"])
 
-	def summarize(self, path: str) -> str:
-		return self.request(self.prompt, path)
+	def summarize(self, path: str, matches: dict[str, str]) -> str:
+		scanned_coordinates = "\n".join(matches.values())
+		return self.request(self.prompt, path, [("[SCANNED_COORDINATES]", scanned_coordinates)])
 
 	def request(self, message: str, image_path: str | None = None, replacements: list[tuple[str, str]] | None = None) -> str:
 		if replacements:

@@ -12,6 +12,10 @@ GRID_OFFSET_Y = 8 * 2
 LABEL_PADDING = 15
 FUZZY_MATCH_THRESHOLD = 0.75
 COLOR_DISTANCE_THRESHOLD = 30
+PROMPT_TILES = {
+	"cuttabletree": "cuttable tree",
+	"doorup": "door",
+}
 DEBUG = True
 
 def load_saved_tiles(directory: str) -> dict[str, Image.Image]:
@@ -23,12 +27,12 @@ def load_saved_tiles(directory: str) -> dict[str, Image.Image]:
 			tiles[name] = Image.open(path)
 	return tiles
 
-def color_distance(c1, c2) -> float:
-	if isinstance(c1, int):
-		c1 = (c1,)
-	if isinstance(c2, int):
-		c2 = (c2,)
-	return sum((a - b) ** 2 for a, b in zip(c1, c2)) ** 0.5
+def color_distance(colorA, colorB) -> float:
+	if isinstance(colorA, int):
+		colorA = (colorA,)
+	if isinstance(colorB, int):
+		colorB = (colorB,)
+	return sum((a - b) ** 2 for a, b in zip(colorA, colorB)) ** 0.5
 
 def compare_tiles(template: Image.Image, tile: Image.Image) -> float:
 	total_pixels: int = template.width * template.height
@@ -41,7 +45,7 @@ def compare_tiles(template: Image.Image, tile: Image.Image) -> float:
 				matched_pixels += 1
 	return matched_pixels / total_pixels if total_pixels > 0 else 0.0
 
-def preprocess(image_path: str, output_path: str, grid_size: int):
+def preprocess(image_path: str, output_path: str, grid_size: int) -> dict[str, str]:
 	image = Image.open(image_path)
 	width, height = image.width * 2, image.height * 2
 	grid_size *= 2
@@ -70,6 +74,8 @@ def preprocess(image_path: str, output_path: str, grid_size: int):
 		debug_dir = os.path.join(os.path.dirname(output_path), "tiles")
 		os.makedirs(debug_dir, exist_ok=True)
 
+	matches: dict[str, str] = {}
+
 	for iy, (y0, y1) in enumerate(y_slices):
 		for ix, (x0, x1) in enumerate(x_slices):
 			tile = canvas.crop((x0, y0, x1, y1))
@@ -78,13 +84,20 @@ def preprocess(image_path: str, output_path: str, grid_size: int):
 			for name, template in named_tiles.items():
 				match = compare_tiles(template, tile)
 				if match > FUZZY_MATCH_THRESHOLD:
+					col_coord = (ix - 1) - COL_INDEX_OFFSET
+					row_coord = ROW_INDEX_OFFSET - (iy - 1)
 					if DEBUG:
-						print(f"Tile at ({iy}, {ix}) matches '{name}' with {match:.2%} similarity")
-					replacement_name = name.split("_")[-1]
-					tile = replacement_tiles.get(replacement_name, tile)
+						print(f"Tile at ({col_coord}, {row_coord}) matches '{name}' with {match:.2%} similarity")
+					horizontal = "tiles right" if col_coord >= 0 else "tiles left"
+					vertical = "tiles up" if row_coord >= 0 else "tiles down"
+					template_name = name.split("_")[-1]
+					tile = replacement_tiles.get(template_name, tile)
+					if template_name in PROMPT_TILES:
+						matches[f"{ix},{iy}"] = f"({abs(col_coord)} {horizontal}, {abs(row_coord)} {vertical}) -> {PROMPT_TILES[template_name]}"
 					break
 			out.paste(tile, (xs[ix], ys[iy]))
-
+	if DEBUG:
+		print("\n".join(matches.values()))
 	draw = ImageDraw.Draw(out)
 
 	for ix in range(1, len(x_slices)):
@@ -109,19 +122,21 @@ def preprocess(image_path: str, output_path: str, grid_size: int):
 		direction = "up" if row_val > 0 else ("down" if row_val < 0 else "")
 		cx = rx(grid_size // 2)
 		cy = ry(GRID_OFFSET_Y + row * grid_size + grid_size // 2)
-		draw.text((cx, cy - 7), str(row_val), fill="white", font=font, anchor="mm")
+		draw.text((cx, cy - 7), str((row_val)), fill="white", font=font, anchor="mm")
 		if direction:
 			draw.text((cx, cy + 7), direction, fill="white", font=small_font, anchor="mm")
+			
 	for col in range(15):
 		col_val = col - COL_INDEX_OFFSET
 		direction = "right" if col_val > 0 else ("left" if col_val < 0 else "")
 		cx = rx((col + 1) * grid_size + grid_size // 2)
 		cy = ry(height + grid_size // 2)
-		draw.text((cx, cy - 7), str(col_val), fill="white", font=font, anchor="mm")
+		draw.text((cx, cy - 7), str((col_val)), fill="white", font=font, anchor="mm")
 		if direction:
 			draw.text((cx, cy + 7), direction, fill="white", font=small_font, anchor="mm")
 
 	out.save(output_path)
+	return matches
 
 def tile_slice(total: int, offset: int, step: int) -> list[tuple[int, int]]:
 	slices = [(0, offset)]
