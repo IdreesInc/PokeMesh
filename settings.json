@@ -13,7 +13,7 @@
 		"TEMPLATING:",
 		"To aid with identification, certain tiles have been replaced with templates that are easier to identify:",
 		"Doors = Red tiles with a white arrow pointing in the direction they can be entered/exited",
-		"Tall Grass = Bright green tiles with the word 'GRASS' in white text",
+		"Tall Grass = Green tiles with the word 'GRASS' in white text",
 		"Ledges = Dark brown tiles with a white arrow pointing in the direction they can be crossed",
 		"Not all elements will have been replaced, but if you see something that looks like a template, you can be sure of what it is.",
 		"COORDINATE CALCULATIONS:",
