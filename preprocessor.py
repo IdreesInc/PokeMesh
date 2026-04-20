@@ -95,15 +95,8 @@ def preprocess(image_path: str, output_path: str, grid_size: int):
 		gy = ys[iy] - LINE_WIDTH
 		draw.rectangle([(0, gy), (new_w - 1, gy + LINE_WIDTH - 1)], fill="red")
 
-	# coord_font = ImageFont.truetype("/Users/idrees/Library/Fonts/Monocraft.ttc", size=8)
-	# for iy in range(1, len(y_slices) - 1):
-	# 	for ix in range(1, len(x_slices)):
-	# 		col_coord = ix - 1 - COL_INDEX_OFFSET
-	# 		row_coord = (iy - 1 - ROW_INDEX_OFFSET) * -1
-	# 		label = f"{col_coord},{row_coord}"
-	# 		draw.text((xs[ix] + 2, ys[iy] + 1), label, fill="black", font=coord_font)
-
 	font = ImageFont.load_default(size=14)
+	small_font = ImageFont.load_default(size=11)
 
 	def rx(v):
 		return redraw(v, x_slices, xs)
@@ -112,24 +105,21 @@ def preprocess(image_path: str, output_path: str, grid_size: int):
 		return redraw(v, y_slices, ys)
 
 	for row in range(9):
-		draw.text(
-			(
-				rx(grid_size // 2),
-				ry(GRID_OFFSET_Y + row * grid_size + grid_size // 2),
-			),
-			str((row - ROW_INDEX_OFFSET) * -1),
-			fill="white",
-			font=font,
-			anchor="mm",
-		)
+		row_val = (row - ROW_INDEX_OFFSET) * -1
+		direction = "up" if row_val > 0 else ("down" if row_val < 0 else "")
+		cx = rx(grid_size // 2)
+		cy = ry(GRID_OFFSET_Y + row * grid_size + grid_size // 2)
+		draw.text((cx, cy - 7), str(row_val), fill="white", font=font, anchor="mm")
+		if direction:
+			draw.text((cx, cy + 7), direction, fill="white", font=small_font, anchor="mm")
 	for col in range(15):
-		draw.text(
-			(rx((col + 1) * grid_size + grid_size // 2), ry(height + grid_size // 2)),
-			str(col - COL_INDEX_OFFSET),
-			fill="white",
-			font=font,
-			anchor="mm",
-		)
+		col_val = col - COL_INDEX_OFFSET
+		direction = "right" if col_val > 0 else ("left" if col_val < 0 else "")
+		cx = rx((col + 1) * grid_size + grid_size // 2)
+		cy = ry(height + grid_size // 2)
+		draw.text((cx, cy - 7), str(col_val), fill="white", font=font, anchor="mm")
+		if direction:
+			draw.text((cx, cy + 7), direction, fill="white", font=small_font, anchor="mm")
 
 	out.save(output_path)
 

@@ -8,6 +8,7 @@ from typing import NoReturn
 from meshcore import MeshCore, EventType
 from emulator import Emulator
 from preprocessor import preprocess
+from stats import Stats
 from summarizer import Summarizer
 from game_data import MAP_NAMES
 
@@ -48,6 +49,7 @@ SAVE_STATE_DIRECTORY = "resources/gba_saves"
 RANDOM_BUTTONS = ["up", "down", "left", "right"]
 
 summarizer = Summarizer(SECRETS, SETTINGS)
+stats = Stats("stats.json")
 input_queue = list[Action|Query]()
 output_queue = list[str]()
 # Map of users to requested inputs
@@ -78,15 +80,20 @@ def main():
 					emulator.press(random_button)
 				else:
 					emulator.press(current.button)
+				stats.increment_buttons_pressed()
 				current.times -= 1
 				if current.times <= 0:
 					input_queue.pop(0)
 				time.sleep(SECONDS_PER_INPUT)
 				if len(input_queue) == 0:
 					if bonk_counter > bonks_at_start:
-						output(f"Detected {bonk_counter - bonks_at_start} bonk{'' if bonk_counter - bonks_at_start == 1 else 's'}")
+						bonk_amount = bonk_counter - bonks_at_start
+						stats.increment_bonks(bonk_amount)
+						output(f"Detected {bonk_amount} bonk{'' if bonk_amount == 1 else 's'}")
 					time.sleep(SECONDS_BEFORE_SUMMARY)
 					save_state(emulator)
+					stats.increment_rounds()
+					stats.save()
 					capture_and_summarize(emulator)
 			elif isinstance(input_queue[0], Query):
 				query = input_queue[0]
@@ -175,6 +182,7 @@ async def handle_message(event):
 	if chan == CHANNEL_IDX and text.startswith(PREFIX):
 		text = text[len(PREFIX):].strip()
 		process_input(text, sender)
+		stats.increment_user_action(sender)
 
 async def send_message(meshcore: MeshCore, text: str):
 	await meshcore.commands.send_chan_msg(CHANNEL_IDX, text)

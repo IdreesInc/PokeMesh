@@ -2,6 +2,7 @@ resources/
 secrets.json
 tmp/
 tests/outputs/
+stats.json
 
 # Python-generated files
 __pycache__/
