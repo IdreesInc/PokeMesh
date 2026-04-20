@@ -95,6 +95,14 @@ def preprocess(image_path: str, output_path: str, grid_size: int):
 		gy = ys[iy] - LINE_WIDTH
 		draw.rectangle([(0, gy), (new_w - 1, gy + LINE_WIDTH - 1)], fill="red")
 
+	# coord_font = ImageFont.truetype("/Users/idrees/Library/Fonts/Monocraft.ttc", size=8)
+	# for iy in range(1, len(y_slices) - 1):
+	# 	for ix in range(1, len(x_slices)):
+	# 		col_coord = ix - 1 - COL_INDEX_OFFSET
+	# 		row_coord = (iy - 1 - ROW_INDEX_OFFSET) * -1
+	# 		label = f"{col_coord},{row_coord}"
+	# 		draw.text((xs[ix] + 2, ys[iy] + 1), label, fill="black", font=coord_font)
+
 	font = ImageFont.load_default(size=14)
 
 	def rx(v):
