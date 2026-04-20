@@ -10,11 +10,15 @@ COL_INDEX_OFFSET = 7
 LINE_WIDTH = 2
 GRID_OFFSET_Y = 8 * 2
 LABEL_PADDING = 15
-FUZZY_MATCH_THRESHOLD = 0.75
+FUZZY_MATCH_THRESHOLD = 0.8
 COLOR_DISTANCE_THRESHOLD = 30
 PROMPT_TILES = {
 	"cuttabletree": "cuttable tree",
 	"doorup": "door",
+	"doordown": "door",
+	"ladderup": "ladder going up",
+	"ladderdown": "ladder going down",
+	"item": "item",
 }
 DEBUG = True
 
@@ -35,13 +39,18 @@ def color_distance(colorA, colorB) -> float:
 	return sum((a - b) ** 2 for a, b in zip(colorA, colorB)) ** 0.5
 
 def compare_tiles(template: Image.Image, tile: Image.Image) -> float:
-	total_pixels: int = template.width * template.height
-	matched_pixels: int = 0
 	if template.size != tile.size:
 		return 0.0
+	total_pixels: int = 0
+	matched_pixels: int = 0
 	for x in range(template.width):
 		for y in range(template.height):
-			if color_distance(template.getpixel((x, y)), tile.getpixel((x, y))) <= COLOR_DISTANCE_THRESHOLD:
+			pixel = template.getpixel((x, y))
+			if color_distance(pixel, 0) <= COLOR_DISTANCE_THRESHOLD:
+				# Ignore black pixels in the template
+				continue
+			total_pixels += 1
+			if color_distance(pixel, tile.getpixel((x, y))) <= COLOR_DISTANCE_THRESHOLD:
 				matched_pixels += 1
 	return matched_pixels / total_pixels if total_pixels > 0 else 0.0
 
@@ -81,20 +90,22 @@ def preprocess(image_path: str, output_path: str, grid_size: int) -> dict[str, s
 			tile = canvas.crop((x0, y0, x1, y1))
 			if DEBUG and debug_dir:
 				tile.save(os.path.join(debug_dir, f"tile_{iy}_{ix}.png"))
+			best_name, best_match = None, FUZZY_MATCH_THRESHOLD
 			for name, template in named_tiles.items():
 				match = compare_tiles(template, tile)
-				if match > FUZZY_MATCH_THRESHOLD:
-					col_coord = (ix - 1) - COL_INDEX_OFFSET
-					row_coord = ROW_INDEX_OFFSET - (iy - 1)
-					if DEBUG:
-						print(f"Tile at ({col_coord}, {row_coord}) matches '{name}' with {match:.2%} similarity")
-					horizontal = "tiles right" if col_coord >= 0 else "tiles left"
-					vertical = "tiles up" if row_coord >= 0 else "tiles down"
-					template_name = name.split("_")[-1]
-					tile = replacement_tiles.get(template_name, tile)
-					if template_name in PROMPT_TILES:
-						matches[f"{ix},{iy}"] = f"({abs(col_coord)} {horizontal}, {abs(row_coord)} {vertical}) -> {PROMPT_TILES[template_name]}"
-					break
+				if match > best_match:
+					best_name, best_match = name, match
+			if best_name is not None:
+				col_coord = (ix - 1) - COL_INDEX_OFFSET
+				row_coord = ROW_INDEX_OFFSET - (iy - 1)
+				if DEBUG:
+					print(f"Tile at ({col_coord}, {row_coord}) matches '{best_name}' with {best_match:.2%} similarity")
+				horizontal = "tiles right" if col_coord >= 0 else "tiles left"
+				vertical = "tiles up" if row_coord >= 0 else "tiles down"
+				template_name = best_name.split("_")[-1]
+				tile = replacement_tiles.get(template_name, tile)
+				if template_name in PROMPT_TILES:
+					matches[f"{ix},{iy}"] = f"({abs(col_coord)} {horizontal}, {abs(row_coord)} {vertical}) -> {PROMPT_TILES[template_name]}"
 			out.paste(tile, (xs[ix], ys[iy]))
 	if DEBUG:
 		print("\n".join(matches.values()))
