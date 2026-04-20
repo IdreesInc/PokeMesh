@@ -89,11 +89,11 @@ def preprocess(image_path: str, output_path: str, grid_size: int):
 
 	for ix in range(1, len(x_slices)):
 		gx = xs[ix] - LINE_WIDTH
-		draw.rectangle([(gx, 0), (gx + LINE_WIDTH - 1, new_h - 1)], fill="black")
+		draw.rectangle([(gx, 0), (gx + LINE_WIDTH - 1, new_h - 1)], fill="red")
 
 	for iy in range(1, len(y_slices) - 1):
 		gy = ys[iy] - LINE_WIDTH
-		draw.rectangle([(0, gy), (new_w - 1, gy + LINE_WIDTH - 1)], fill="black")
+		draw.rectangle([(0, gy), (new_w - 1, gy + LINE_WIDTH - 1)], fill="red")
 
 	font = ImageFont.load_default(size=14)
 
@@ -109,7 +109,7 @@ def preprocess(image_path: str, output_path: str, grid_size: int):
 				rx(grid_size // 2),
 				ry(GRID_OFFSET_Y + row * grid_size + grid_size // 2),
 			),
-			str(row - ROW_INDEX_OFFSET),
+			str((row - ROW_INDEX_OFFSET) * -1),
 			fill="white",
 			font=font,
 			anchor="mm",
