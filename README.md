@@ -33,7 +33,7 @@ The preprocessor then stitches the tiles back together into the output image, al
 
 Replaced tiles are stored and certain tiles are passed to the VLM as part of the prompt. This not only reduces mistakes in identifying those specific objects, but it has also been found to improve the identification of other tiles that weren't pre-identified as well.
 
-## How To Run
+## How to Run
 
 1. Clone the repository and install the requirements with uv
 2. Download a development build of the [mGBA emulator](https://mgba.io/downloads.html)
