@@ -7,7 +7,7 @@ PokeMesh is a collaborative game of Pokémon FireRed played over a decentralized
 
 *Note: PokeMesh is not affiliated with Nintendo, Game Freak, or the Pokémon Company. Pokémon and all related content are trademarks of Nintendo.*
 
-## How to Play
+## How To Play
 
 PokeMesh is currently running in the San Francisco Bay Area mesh network. To play, connect to the #bot channel on MeshCore and submit inputs in the format `/poke [input] [times]` (e.g. `/poke up 2 right a 3` will press up twice, then right once, then a three times). You can also submit queries in the format `/poke [query]` (e.g. `/poke where`) to get information about the game! Type in `/poke help` to view all the available commands.
 
@@ -31,7 +31,7 @@ The preprocessor then stitches the tiles back together into the output image, al
 
 Replaced tiles are stored and certain tiles are passed to the VLM as part of the prompt. This not only reduces mistakes in identifying those specific objects, but it has also been found to improve the identification of other tiles that weren't pre-identified as well.
 
-## How to Run
+## How To Run
 
 1. Clone the repository and install the requirements with uv
 2. Download a development build of the [mGBA emulator](https://mgba.io/downloads.html)
