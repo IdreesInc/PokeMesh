@@ -53,4 +53,4 @@ Also feel free to check out my other open-source projects like [Monocraft](https
 
 ## Disclaimer
 
-*This program uses a VLM (Vision Language Model) to process the game screenshots, but like all of my open-source projects, PokeMesh was not "vibe coded" with AI. While you are welcome to use whatever tools you prefer to contribute, please be sure to review all code by hand and do not blindly commit.*
+*This program uses a VLM (Vision Language Model) to process the game screenshots, but like all of my open-source projects, the source code and documentation for PokeMesh was not "vibe coded" with AI. While you are welcome to use whatever tools you prefer to contribute, please be sure to review all code by hand and do not blindly commit.*
