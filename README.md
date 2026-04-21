@@ -29,6 +29,8 @@ The preprocessor first breaks down the screenshot into the individual tiles that
 
 The preprocessor then stitches the tiles back together into the output image, along with a grid overlay allows the VLM to better understand the positions and possible movement options available to the player. A legend is drawn outside the screenshot on each axis to define positions as relational to the player at the origin.
 
+![](preview/screenshot_grid.png)
+
 Replaced tiles are stored and certain tiles are passed to the VLM as part of the prompt. This not only reduces mistakes in identifying those specific objects, but it has also been found to improve the identification of other tiles that weren't pre-identified as well.
 
 ## How To Run
