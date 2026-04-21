@@ -44,7 +44,7 @@ MODIFIED_IMG_PATH: str = "tmp/screenshot_grid.png"
 SECONDS_PER_INPUT: float = 0.5 / EMULATION_SPEED
 SECONDS_BEFORE_SUMMARY: float = 4.0 / EMULATION_SPEED
 CHANNEL_IDX = SETTINGS["channel"]
-SAVE_STATE_DIRECTORY = "resources/gba_saves"
+SAVE_STATE_DIRECTORY = "data/saves"
 RANDOM_BUTTONS = ["up", "down", "left", "right"]
 
 summarizer = Summarizer(SECRETS, SETTINGS)

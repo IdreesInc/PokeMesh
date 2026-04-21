@@ -1,4 +1,4 @@
-resources/
+data/
 secrets.json
 tmp/
 tests/outputs/
