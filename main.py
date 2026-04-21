@@ -67,6 +67,7 @@ def main():
 	bonk_thread = threading.Thread(target=lambda: asyncio.run(bonk_loop(emulator)), daemon=True)
 	bonk_thread.start()
 	bonks_at_start = 0
+	previous_location = None
 	while True:
 		if len(input_queue) > 0:
 			if isinstance(input_queue[0], Action):
@@ -91,6 +92,11 @@ def main():
 					time.sleep(SECONDS_BEFORE_SUMMARY)
 					save_state(emulator)
 					stats.increment_rounds()
+					location = get_location(emulator)
+					if location != previous_location:
+						stats.increment_visited_location(location)
+						print(f"Location changed: {location}")
+						previous_location = location
 					stats.save()
 					capture_and_summarize(emulator)
 			elif isinstance(input_queue[0], Query):

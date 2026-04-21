@@ -12,6 +12,7 @@ class Stats:
 			self.buttons_pressed = data.get("buttons_pressed", 0)
 			self.bonks = data.get("bonks", 0)
 			self.rounds = data.get("rounds", 0)
+			self.visited_locations = data.get("visited_locations", {})
 			self.user_stats = data.get("user_stats", {})
 
 	def save(self):
@@ -20,6 +21,7 @@ class Stats:
 				"buttons_pressed": self.buttons_pressed,
 				"bonks": self.bonks,
 				"rounds": self.rounds,
+				"visited_locations": self.visited_locations,
 				"user_stats": self.user_stats
 			}, f, indent=4)
 
@@ -38,6 +40,9 @@ class Stats:
 
 	def increment_rounds(self, count: int = 1):
 		self.rounds += count
+
+	def increment_visited_location(self, location: str):
+		self.visited_locations[location] = self.visited_locations.get(location, 0) + 1
 
 	def increment_user_action(self, user: str):
 		if user not in self.user_stats:
