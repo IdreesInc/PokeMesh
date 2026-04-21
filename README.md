@@ -34,7 +34,7 @@ Replaced tiles are stored and certain tiles are passed to the VLM as part of the
 ## How to Run
 
 1. Clone the repository and install the requirements with uv
-2. Download a development build of the [mGBA emulator](hhttps://mgba.io/downloads.html)
+2. Download a development build of the [mGBA emulator](https://mgba.io/downloads.html)
    - A development build is required for running a Lua script on startup
    - You can use a normal build, but you will have to manually run the mGBA-http Lua script every time you start the emulator
 3. Download the [mGBA-http](https://github.com/nikouu/mGBA-http) Lua script and executable
