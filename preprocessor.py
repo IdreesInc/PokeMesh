@@ -94,20 +94,18 @@ def preprocess(image_path: str, output_path: str, tile_size: int) -> dict[str, s
 	named_tiles = load_saved_tiles(NAMED_TILES_DIR)
 	replacement_tiles = load_saved_tiles(REPLACEMENT_TILES_DIR)
 
-	# Original-scale padded canvas used only for tile comparison (4x fewer pixels per tile)
 	orig_w, orig_h = orig_image.size
 	orig_canvas = Image.new(orig_image.mode, (orig_w + orig_tile_size, orig_h + orig_tile_size), 0)
 	orig_canvas.paste(orig_image, (orig_tile_size, 0))
 	orig_x_slices = tile_slice(orig_w + orig_tile_size, orig_tile_size, orig_tile_size)
 	orig_y_slices = tile_slice(orig_h + orig_tile_size, GRID_OFFSET_Y // 2, orig_tile_size)
 
-	# Pre-scale named tile templates down to original resolution for comparison
+	# Scale named tiles down for comparison
 	compare_named_tiles = {
 		name: template.resize((orig_tile_size, orig_tile_size), Image.Resampling.NEAREST)
 		for name, template in named_tiles.items()
 	}
 
-	# Scaled padded canvas: one extra tile column on the left, one extra tile row on the bottom
 	scaled_w, scaled_h = scaled_image.size
 	canvas = Image.new(scaled_image.mode, (scaled_w + scaled_tile_size, scaled_h + scaled_tile_size), 0)
 	canvas.paste(scaled_image, (scaled_tile_size, 0))
