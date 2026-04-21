@@ -6,8 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MGBA_BIN="$SCRIPT_DIR/mgba/mGBA.app/Contents/MacOS/mGBA"
 MGBA_HTTP="$SCRIPT_DIR/mgba/mGBA-http-0.8.2-osx-arm64-self-contained"
 LUA_SCRIPT="$SCRIPT_DIR/mgba/mGBASocketServer.lua"
-SECRETS="$SCRIPT_DIR/secrets.json"
-ROM=$(python3 -c "import json; print(json.load(open('$SECRETS'))['rom'])")
+ROM="$SCRIPT_DIR/data/firered.gba"
 
 if [[ -z "$ROM" ]]; then
   echo "Error: 'rom' not set in secrets.json"

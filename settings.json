@@ -4,7 +4,7 @@
 	"prefixes": ["/poke", "/p", "/pokemesh", "/prof", "/professor"],
 	"emulation_speed": 2.0,
 	"max_inputs": 10,
-	"time_between_rounds": 3.0,
+	"time_between_rounds": 15.0,
 	"prompt": [
 		"Screenshot from the game Pokémon FireRed, taken from a Game Boy Advance.",
 		"IDENTIFIED OBJECTS:",
