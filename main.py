@@ -30,7 +30,8 @@ SECRETS: dict = json.load(open("secrets.json"))
 SETTINGS: dict = json.load(open("settings.json"))
 SERVER: str = SECRETS["server"]
 SERVER_TOKEN: str = SECRETS["server_token"]
-MGBA_URL: str = SECRETS["mgba-url"]
+MGBA_URL: str = SECRETS["mgba_url"]
+USB_SERIAL: str = SECRETS["usb_serial"]
 MODEL: str = SETTINGS["model"]
 PROMPT: str = "\n".join(SETTINGS["prompt"])
 EMULATION_SPEED: float = SETTINGS["emulation_speed"]
@@ -113,7 +114,7 @@ def main():
 				elif query.action == "who":
 					output("PokeMesh was created by Idrees, check out the code at https://github.com/IdreesInc/PokeMesh")
 				elif query.action == "example":
-					output("Example input: '/poke up 2 right a 3' will press up twice, then right once, then a three times")
+					output("Example input: '/poke up 2 right a 3' will press 'up' twice, then 'right' once, then 'a' three times")
 				input_queue.pop(0)
 		elif time.time() > round_end_time:
 			print("Round ended. Processing input requests...")
@@ -164,7 +165,7 @@ def save_state(emulator: Emulator) -> None:
 		emulator.save_state(f)
 
 async def connect_to_meshcore() -> NoReturn:
-	meshcore = await MeshCore.create_serial("/dev/tty.usbmodem441BF66A71281")
+	meshcore = await MeshCore.create_serial(USB_SERIAL)
 	channel_info = await meshcore.commands.get_channel(CHANNEL_IDX)
 	print(f"Listening to channel {channel_info.payload['channel_name']}...")
 	await meshcore.start_auto_message_fetching()
