@@ -14,6 +14,7 @@ FUZZY_MATCH_THRESHOLD = 0.8
 COLOR_DISTANCE_THRESHOLD = 30
 PROMPT_TILES = {
 	"cuttabletree": "cuttable tree",
+	"door": "door",
 	"doorup": "door",
 	"doordown": "door",
 	"ladderup": "ladder going up",
