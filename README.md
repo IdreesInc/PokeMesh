@@ -3,7 +3,7 @@
 ![License](https://img.shields.io/github/license/IdreesInc/PokeMesh)
 [![Discord](https://img.shields.io/discord/1398471368403583120?logo=discord&logoColor=fff&label=discord&color=5865F2)](https://discord.gg/6yxE9prcNc)
 
-PokeMesh is a collaborative game of Pokémon FireRed played over a decentralized network! The game view is processed and summarized, effectively turning the game into a text-based adventure over [MeshCore](https://meshcore.co.uk/). In the style of "Twitch Plays Pokémon", players submit inputs and the most requested inputs are ran every 30s to progress through the game!
+PokeMesh is a collaborative game of Pokémon FireRed played over a decentralized network! The game view is processed and summarized, effectively turning the game into a text-based adventure over [MeshCore](https://meshcore.co.uk/). In the style of "Twitch Plays Pokémon", players submit inputs and the most requested inputs are ran every 15 seconds to progress through the game!
 
 *Note: PokeMesh is not affiliated with Nintendo, Game Freak, or the Pokémon Company. Pokémon and all related content are trademarks of Nintendo.*
 
