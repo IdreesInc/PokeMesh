@@ -20,7 +20,7 @@ class Action:
 		self.times = times
 
 class Query:
-	VALID_QUERIES = ["help", "about", "where", "ping", "who", "example"]
+	VALID_QUERIES = ["help", "about", "where", "ping", "source", "example", "leaderboard"]
 
 	def __init__(self, action: str, value: str) -> None:
 		self.action = action
@@ -107,14 +107,18 @@ def main():
 					output("Queries: " + ", ".join(Query.VALID_QUERIES) + "\nInputs: " + ", ".join(Action.VALID_BUTTONS))
 				elif query.action == "about":
 					output("PokeMesh is a collaborative game of Pokémon FireRed! Players submit inputs and the most requested inputs are ran every " + str(int(TIME_BETWEEN_ROUNDS)) + "s.")
+					output("Type '/poke example' for input examples or '/poke source' for more info on how it works")
 				elif query.action == "where" or query.action == "location":
 					output(f"Location: {get_location(emulator)}")
 				elif query.action == "ping":
 					output("Pong!")
-				elif query.action == "who":
+				elif query.action == "source" or query.action == "who":
 					output("PokeMesh was created by Idrees, check out the code at https://github.com/IdreesInc/PokeMesh")
 				elif query.action == "example":
 					output("Example input: '/poke up 2 right a 3' will press 'up' twice, then 'right' once, then 'a' three times")
+				elif query.action == "leaderboard":
+					leaderboard = stats.get_leaderboard()
+					output("Leaderboard:\n" + "\n".join(": ".join(str(i) for i in stat) for stat in leaderboard))
 				input_queue.pop(0)
 		elif time.time() > round_end_time:
 			print("Round ended. Processing input requests...")

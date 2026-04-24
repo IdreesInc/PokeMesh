@@ -22,7 +22,8 @@ PokeMesh is a collaborative game of Pokémon FireRed played over a decentralized
 ## Project Goals
 
 - Play a game of Pokémon FireRed collaboratively on a decentralized chat network that doesn't support images
-- Convert the game into a text-based format that fits within 138 characters to conform to MeshCore's extremely lean message limits
+- Convert the Game Boy Advance game into a text-based format that fits within 138 characters to conform to MeshCore's tight message limits
+- Be able to run the server without any internet connection, relying entirely on the mesh network for communication
 - Use only open-source, local models that run on an old laptop with 32 GB of shared RAM
 - Ensure summaries are accurate while also keeping processing time under 15 seconds
 

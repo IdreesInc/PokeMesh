@@ -49,3 +49,10 @@ class Stats:
 			self.user_stats[user] = {
 			}
 		self.user_stats[user]["actions"] = self.user_stats[user].get("actions", 0) + 1
+
+	def get_leaderboard(self, limit: int = 3) -> list[tuple[str, int]]:
+		names_and_actions = {}
+		for user, stats in self.user_stats.items():
+			names_and_actions[user] = stats.get("actions", 0)
+		leaderboard = sorted(names_and_actions.items(), key=lambda x: x[1], reverse=True)
+		return leaderboard[:limit]
