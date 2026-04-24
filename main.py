@@ -104,7 +104,8 @@ def main():
 				query = input_queue[0]
 				print("Processing query: " + query.action)
 				if query.action == "help":
-					output("Queries: " + ", ".join(Query.VALID_QUERIES) + "\nInputs: " + ", ".join(Action.VALID_BUTTONS))
+					output("Queries: " + ", ".join(Query.VALID_QUERIES))
+					output("Inputs: " + ", ".join(Action.VALID_BUTTONS))
 				elif query.action == "about":
 					output("PokeMesh is a collaborative game of Pokémon FireRed! Players submit inputs and the most requested inputs are ran every " + str(int(TIME_BETWEEN_ROUNDS)) + "s.")
 					output("Type '/poke example' for input examples or '/poke source' for more info on how it works")
@@ -217,9 +218,14 @@ def input_loop():
 		process_input(input("> "))
 
 def output(message: str):
+	CHAR_LIMIT = 135
 	print(message)
 	if not LOCAL:
-		output_queue.append(message)
+		if len(message) > CHAR_LIMIT:
+			output_queue.append(message[:CHAR_LIMIT])
+			print("Message truncated: " + str(len(message)) + " -> " + str(CHAR_LIMIT))
+		else:
+			output_queue.append(message)
 
 def process_input(command: str, sender: str | None = None):
 	split = command.lower().split()
