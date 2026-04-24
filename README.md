@@ -19,7 +19,7 @@ PokeMesh is a collaborative game of Pokémon FireRed played over a decentralized
 
 *Note: PokeMesh is not affiliated with Nintendo, Game Freak, or the Pokémon Company. Pokémon and all related content are trademarks of Nintendo.*
 
-## Goals
+## Project Goals
 
 - Play a game of Pokémon FireRed collaboratively on a decentralized chat network that doesn't support images
 - Convert the game into a text-based format that fits within 138 characters to conform to MeshCore's extremely lean message limits
