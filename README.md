@@ -4,6 +4,18 @@
 [![Discord](https://img.shields.io/discord/1398471368403583120?logo=discord&logoColor=fff&label=discord&color=5865F2)](https://discord.gg/6yxE9prcNc)
 
 PokeMesh is a collaborative game of Pokémon FireRed played over a decentralized network! The game view is processed and summarized, effectively turning the game into a text-based adventure over [MeshCore](https://meshcore.co.uk/). In the style of "Twitch Plays Pokémon", players submit inputs and the most requested inputs are ran every 15 seconds to progress through the game!
+<table align="center">
+	<tr>
+		<th align="center">Emulator View</th>
+		<th align="center">Preprocessor Output</th>
+		<th align="center">MeshCore Chat</th>
+	</tr>
+	<tr>
+		<td><img src="preview/screenshot_before_processing.png" alt="In-game screenshot before being processed" width="480" style="image-rendering: pixelated;"></td>
+		<td><img src="preview/screenshot_after_processing.png" alt="Screenshot after being processed with a red grid overlaid and a legend with steps on the left and bottom" width="542" style="image-rendering: pixelated;"></td>
+		<td><img src="preview/chat.jpg" alt="MeshCore #bot chatroom showing the command '/poke up 5 a' and the PokeMesh output of 'Mom: '...Right. All boys leave home someday'" width="320"></td>
+	</tr>
+</table>
 
 *Note: PokeMesh is not affiliated with Nintendo, Game Freak, or the Pokémon Company. Pokémon and all related content are trademarks of Nintendo.*
 
@@ -29,16 +41,14 @@ The preprocessor first breaks down the screenshot into the individual tiles that
 
 The preprocessor then stitches the tiles back together into the output image, along with a grid overlay allows the VLM to better understand the positions and possible movement options available to the player. A legend is drawn outside the screenshot on each axis to define positions as relational to the player at the origin.
 
-![](preview/screenshot_grid.png)
-
 Replaced tiles are stored and certain tiles are passed to the VLM as part of the prompt. This not only reduces mistakes in identifying those specific objects, but it has also been found to improve the identification of other tiles that weren't pre-identified as well.
 
 ## How to Run
 
 1. Clone the repository and install the requirements with uv
 2. Download a development build of the [mGBA emulator](https://mgba.io/downloads.html)
-   - A development build is required for running a Lua script on startup
-   - You can use a normal build, but you will have to manually run the mGBA-http Lua script every time you start the emulator
+	- A development build is required for running a Lua script on startup
+	- You can use a normal build, but you will have to manually run the mGBA-http Lua script every time you start the emulator
 3. Download the [mGBA-http](https://github.com/nikouu/mGBA-http) Lua script and executable
 4. Place the mGBA executable, mGBA-http executable, Lua script, and your game rom in the `mgba` folder
 5. Create a `secrets.json` file in the root directory following the format in `example_secrets.json`
