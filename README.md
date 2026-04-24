@@ -19,6 +19,13 @@ PokeMesh is a collaborative game of Pokémon FireRed played over a decentralized
 
 *Note: PokeMesh is not affiliated with Nintendo, Game Freak, or the Pokémon Company. Pokémon and all related content are trademarks of Nintendo.*
 
+## Goals
+
+- Play a game of Pokémon FireRed collaboratively on a decentralized chat network that doesn't support images
+- Convert the game into a text-based format that fits within 138 characters to conform to MeshCore's extremely lean message limits
+- Use only open-source, local models that run on an old laptop with 32 GB of shared RAM
+- Ensure summaries are accurate while also keeping processing time under 15 seconds
+
 ## How To Play
 
 PokeMesh is currently running in the San Francisco Bay Area mesh network. To play, connect to the #bot channel on MeshCore and submit inputs in the format `/poke [input] [times]` (e.g. `/poke up 2 right a 3` will press up twice, then right once, then a three times). You can also submit queries in the format `/poke [query]` (e.g. `/poke where`) to get information about the game! Type in `/poke help` to view all the available commands.
